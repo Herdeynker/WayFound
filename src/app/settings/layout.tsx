@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { requireConsentedUser } from "@/server/auth/guards";
+import { isTestFixtureRequest, requireConsentedUser } from "@/server/auth/guards";
 
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
-  await requireConsentedUser();
+  if (!(await isTestFixtureRequest())) await requireConsentedUser();
   return (
     <main className="settings-page">
       <div className="settings-header">

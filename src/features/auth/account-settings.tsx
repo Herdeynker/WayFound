@@ -23,6 +23,7 @@ export function AccountSettings({
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   async function action(path: string, payload: Record<string, unknown> = {}) {
     setPending(true);
     setError("");
@@ -96,14 +97,7 @@ export function AccountSettings({
           <Button disabled={exportRequested} onClick={() => action("/api/account/export")}>
             {exportRequested ? "Export request pending" : "Request a data export"}
           </Button>
-          <Button
-            variant="secondary"
-            disabled={deletionRequested}
-            onClick={() => {
-              if (window.confirm("Request account deletion? You will have a grace period to cancel."))
-                action("/api/account/delete", { confirmation: "DELETE" });
-            }}
-          >
+          <Button variant="secondary" disabled={deletionRequested} onClick={() => setConfirmDelete(true)}>
             {deletionRequested ? "Deletion request pending" : "Request account deletion"}
           </Button>
           {deletionRequested && deletionRequestId ? (
@@ -128,6 +122,37 @@ export function AccountSettings({
         <p className="auth-error" role="alert">
           {error}
         </p>
+      ) : null}
+      {confirmDelete ? (
+        <div className="overlay" role="presentation">
+          <div
+            className="dialog account-confirm-dialog"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="delete-dialog-title"
+          >
+            <p className="card-eyebrow">A considered next step</p>
+            <h2 id="delete-dialog-title">Request account deletion?</h2>
+            <p>
+              This queues deletion with a grace period. It is not immediate, and you can cancel while the
+              request is pending.
+            </p>
+            <div className="account-confirm-actions">
+              <Button variant="quiet" onClick={() => setConfirmDelete(false)}>
+                Keep my account
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setConfirmDelete(false);
+                  action("/api/account/delete", { confirmation: "DELETE" });
+                }}
+              >
+                Confirm deletion
+              </Button>
+            </div>
+          </div>
+        </div>
       ) : null}
     </div>
   );

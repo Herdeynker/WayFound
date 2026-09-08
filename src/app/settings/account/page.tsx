@@ -1,7 +1,17 @@
 import { AccountSettings } from "@/features/auth/account-settings";
-import { requireConsentedUser } from "@/server/auth/guards";
+import { isTestFixtureRequest, requireConsentedUser } from "@/server/auth/guards";
 
 export default async function AccountSettingsPage() {
+  if (await isTestFixtureRequest()) {
+    return (
+      <AccountSettings
+        email="demo@example.test"
+        preferences={{ email_enabled: false, telegram_enabled: false }}
+        exportRequested={false}
+        deletionRequested={false}
+      />
+    );
+  }
   const { user, client } = await requireConsentedUser();
   if (!user) return null;
   const [{ data: preferences }, { data: exportRequests }, { data: deletionRequests }] = await Promise.all([

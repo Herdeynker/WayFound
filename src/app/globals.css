@@ -2139,6 +2139,17 @@ button:disabled {
 .is-withheld {
   color: var(--color-slate);
 }
+.account-confirm-dialog > p:not(.card-eyebrow) {
+  color: var(--color-slate);
+  line-height: 1.5;
+}
+.account-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 24px;
+}
 @media (max-width: 767px) {
   .auth-page {
     display: block;

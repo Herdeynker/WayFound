@@ -1,8 +1,20 @@
 import { Card } from "@/components/ui";
 import { getPolicyVersion } from "@/server/auth/constants";
-import { requireConsentedUser } from "@/server/auth/guards";
+import { isTestFixtureRequest, requireConsentedUser } from "@/server/auth/guards";
 
 export default async function PrivacySettingsPage() {
+  if (await isTestFixtureRequest()) {
+    return (
+      <Card>
+        <p className="card-eyebrow">Privacy & consent</p>
+        <h2>Consent history</h2>
+        <p className="settings-muted">
+          Current policy version: <strong>{getPolicyVersion()}</strong>. Test fixture: no account data is
+          loaded.
+        </p>
+      </Card>
+    );
+  }
   const { user, client } = await requireConsentedUser();
   if (!user) return null;
   const { data: consents } = await client
