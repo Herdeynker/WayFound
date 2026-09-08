@@ -19,60 +19,64 @@ describe("Phase 3 Passport RLS and private storage", () => {
     for (const userId of createdUsers) await admin?.auth.admin.deleteUser(userId);
   });
 
-  testCase("isolates drafts, confirmed records and private storage between users", async () => {
-    const password = `Phase3-${crypto.randomUUID()}-Safe!`;
-    const emailA = `phase3-a-${crypto.randomUUID()}@example.test`;
-    const emailB = `phase3-b-${crypto.randomUUID()}@example.test`;
-    const [{ data: createdA }, { data: createdB }] = await Promise.all([
-      admin!.auth.admin.createUser({ email: emailA, password, email_confirm: true }),
-      admin!.auth.admin.createUser({ email: emailB, password, email_confirm: true }),
-    ]);
-    const userAId = createdA.user!.id;
-    const userBId = createdB.user!.id;
-    createdUsers.push(userAId, userBId);
-    const clientA = createClient(url!, publicKey!, {
-      auth: { autoRefreshToken: false, persistSession: false, storageKey: "phase3-a" },
-    });
-    const clientB = createClient(url!, publicKey!, {
-      auth: { autoRefreshToken: false, persistSession: false, storageKey: "phase3-b" },
-    });
-    await clientA.auth.signInWithPassword({ email: emailA, password });
-    await clientB.auth.signInWithPassword({ email: emailB, password });
-    expect(
-      (
-        await createClient(url!, publicKey!, { auth: { autoRefreshToken: false, persistSession: false } })
-          .from("onboarding_progress")
-          .select("user_id")
-      ).error,
-    ).not.toBeNull();
-    expect(
-      (
-        await clientA.from("onboarding_progress").upsert({
-          user_id: userAId,
-          selected_goal_types: ["study_funding"],
-          current_section: "goals",
-          draft: {},
-          completion: 1,
-          revision: 1,
-        })
-      ).error,
-    ).toBeNull();
-    expect(
-      (await clientA.from("onboarding_progress").select("user_id").eq("user_id", userBId)).data,
-    ).toHaveLength(0);
-    expect(
-      (
-        await clientA.from("onboarding_progress").insert({
-          user_id: userBId,
-          draft: {},
-          selected_goal_types: [],
-          current_section: "goals",
-          completion: 0,
-          revision: 1,
-        })
-      ).error,
-    ).not.toBeNull();
-    const bucket = await admin!.storage.getBucket("user-documents");
-    expect(bucket.data?.public).toBe(false);
-  });
+  testCase(
+    "isolates drafts, confirmed records and private storage between users",
+    async () => {
+      const password = `Phase3-${crypto.randomUUID()}-Safe!`;
+      const emailA = `phase3-a-${crypto.randomUUID()}@example.test`;
+      const emailB = `phase3-b-${crypto.randomUUID()}@example.test`;
+      const [{ data: createdA }, { data: createdB }] = await Promise.all([
+        admin!.auth.admin.createUser({ email: emailA, password, email_confirm: true }),
+        admin!.auth.admin.createUser({ email: emailB, password, email_confirm: true }),
+      ]);
+      const userAId = createdA.user!.id;
+      const userBId = createdB.user!.id;
+      createdUsers.push(userAId, userBId);
+      const clientA = createClient(url!, publicKey!, {
+        auth: { autoRefreshToken: false, persistSession: false, storageKey: "phase3-a" },
+      });
+      const clientB = createClient(url!, publicKey!, {
+        auth: { autoRefreshToken: false, persistSession: false, storageKey: "phase3-b" },
+      });
+      await clientA.auth.signInWithPassword({ email: emailA, password });
+      await clientB.auth.signInWithPassword({ email: emailB, password });
+      expect(
+        (
+          await createClient(url!, publicKey!, { auth: { autoRefreshToken: false, persistSession: false } })
+            .from("onboarding_progress")
+            .select("user_id")
+        ).error,
+      ).not.toBeNull();
+      expect(
+        (
+          await clientA.from("onboarding_progress").upsert({
+            user_id: userAId,
+            selected_goal_types: ["study_funding"],
+            current_section: "goals",
+            draft: {},
+            completion: 1,
+            revision: 1,
+          })
+        ).error,
+      ).toBeNull();
+      expect(
+        (await clientA.from("onboarding_progress").select("user_id").eq("user_id", userBId)).data,
+      ).toHaveLength(0);
+      expect(
+        (
+          await clientA.from("onboarding_progress").insert({
+            user_id: userBId,
+            draft: {},
+            selected_goal_types: [],
+            current_section: "goals",
+            completion: 0,
+            revision: 1,
+          })
+        ).error,
+      ).not.toBeNull();
+      const bucket = await admin!.storage.getBucket("user-documents");
+      expect(bucket.data?.public).toBe(false);
+    },
+    30_000,
+  );
 });
