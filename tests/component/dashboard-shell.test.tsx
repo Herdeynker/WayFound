@@ -20,6 +20,8 @@ describe("Phase 1 dashboard shell", () => {
     );
     expect(screen.getByRole("heading", { name: "Your Opportunity Path" })).toBeInTheDocument();
     expect(screen.getAllByText("Complete your profile")).toHaveLength(2);
+    expect(screen.getAllByText("Deadline")).toHaveLength(dashboardFixture.opportunities.length);
+    expect(screen.queryByText("Fixture deadline")).not.toBeInTheDocument();
     for (const opportunity of dashboardFixture.opportunities)
       expect(screen.getByText(opportunity.title)).toBeInTheDocument();
   });

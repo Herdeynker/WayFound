@@ -2,6 +2,7 @@ export type OpportunityCategory = "Scholarship" | "Job" | "Skilled Work";
 
 export type OpportunityFixture = {
   id: string;
+  source: "fixture";
   title: string;
   category: OpportunityCategory;
   country: string;
@@ -38,32 +39,35 @@ export const dashboardFixture: DashboardFixture = {
   opportunities: [
     {
       id: "fixture-china-scholarship",
+      source: "fixture",
       title: "Chinese Government Scholarship",
       category: "Scholarship",
       country: "China",
       match: 92,
       deadline: "20 Nov 2024",
-      deadlineLabel: "Fixture deadline",
+      deadlineLabel: "Deadline",
       artwork: "china",
     },
     {
       id: "fixture-germany-engineer",
+      source: "fixture",
       title: "Software Engineer",
       category: "Job",
       country: "Germany",
       match: 88,
       deadline: "15 Jan 2025",
-      deadlineLabel: "Fixture deadline",
+      deadlineLabel: "Deadline",
       artwork: "germany",
     },
     {
       id: "fixture-canada-skilled-worker",
+      source: "fixture",
       title: "Skilled Worker",
       category: "Skilled Work",
       country: "Canada",
       match: 85,
       deadline: "28 Feb 2025",
-      deadlineLabel: "Fixture deadline",
+      deadlineLabel: "Deadline",
       artwork: "canada",
     },
   ],

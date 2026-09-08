@@ -253,10 +253,12 @@ function NextBestActionCard({ variant }: { variant: "desktop" | "mobile" }) {
     );
   return (
     <section aria-labelledby="next-action-title" className="next-action-card">
-      <span className="card-eyebrow">{dashboardFixture.nextAction.label}</span>
-      <h2 id="next-action-title">{dashboardFixture.nextAction.title}</h2>
+      <div className="next-action-copy">
+        <span className="card-eyebrow">{dashboardFixture.nextAction.label}</span>
+        <h2 id="next-action-title">{dashboardFixture.nextAction.title}</h2>
+        <p>{dashboardFixture.nextAction.description}</p>
+      </div>
       <ProfileIllustration />
-      <p>{dashboardFixture.nextAction.description}</p>
       <Button>
         Continue setup <Icon name="arrow-right" size={22} />
       </Button>
