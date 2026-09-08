@@ -6,11 +6,17 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   reporter: process.env.CI ? "line" : "list",
-  use: { baseURL: "http://127.0.0.1:3000", trace: "on-first-retry" },
+  timeout: 120_000,
+  use: {
+    baseURL: "http://127.0.0.1:3000",
+    trace: "on-first-retry",
+    extraHTTPHeaders: { "x-wayfound-test-auth": "phase2-static-fixture" },
+  },
   webServer: {
     command: "npm run dev -- --hostname 127.0.0.1",
     url: "http://127.0.0.1:3000/health",
     reuseExistingServer: !process.env.CI,
+    env: { PLAYWRIGHT_TEST: "1" },
     timeout: 120_000,
   },
   projects: [

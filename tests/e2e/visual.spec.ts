@@ -18,7 +18,7 @@ test.describe("Phase 1 visual evidence", () => {
 
     for (const [width, height, name] of viewports) {
       await page.setViewportSize({ width, height });
-      await page.goto("/");
+      await page.goto("/dashboard");
       await expect(page.locator("body")).toBeVisible();
       await page.screenshot({ path: `artifacts/phase-1/${name}.png`, fullPage: false });
     }

@@ -8,6 +8,8 @@ export const publicEnvironmentSchema = z.object({
   NEXT_PUBLIC_APP_URL: optionalText,
   NEXT_PUBLIC_SUPABASE_URL: optionalText,
   NEXT_PUBLIC_SUPABASE_ANON_KEY: optionalText,
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: optionalText,
+  NEXT_PUBLIC_GOOGLE_OAUTH_ENABLED: z.preprocess(emptyToUndefined, z.enum(["true", "false"]).optional()),
 });
 
 export const serverEnvironmentSchema = z.object({
@@ -27,6 +29,12 @@ export const serverEnvironmentSchema = z.object({
   SENTRY_DSN: optionalText,
   CRON_SECRET: optionalText,
   FEATURE_FLAGS_JSON: optionalText,
+  GOOGLE_OAUTH_ENABLED: z.preprocess(emptyToUndefined, z.enum(["true", "false"]).optional()),
+  PHASE2_POLICY_VERSION: optionalText,
+  ACCOUNT_DELETION_GRACE_DAYS: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().min(1).max(365).optional(),
+  ),
 });
 
 export type PublicEnvironment = z.infer<typeof publicEnvironmentSchema>;

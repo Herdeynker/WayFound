@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("Phase 1 dashboard shell", () => {
   test("desktop shell exposes the approved hierarchy", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "Desktop-only assertion");
-    await page.goto("/");
+    await page.goto("/dashboard");
     await expect(page.getByRole("heading", { name: "Good morning, Amara" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "Your Opportunity Path" })).toBeVisible();
     await expect(page.getByRole("img", { name: "Your next step is a bigger story." })).toBeVisible();
@@ -22,7 +22,7 @@ test.describe("Phase 1 dashboard shell", () => {
       { width: 1680, height: 945 },
     ]) {
       await page.setViewportSize(viewport);
-      await page.goto("/");
+      await page.goto("/dashboard");
 
       const geometry = await page.evaluate(() => {
         const profile = document.querySelector('.sidebar-link[href="#profile"]')?.getBoundingClientRect();
@@ -62,7 +62,7 @@ test.describe("Phase 1 dashboard shell", () => {
 
   test("mobile shell has labelled bottom navigation and no page overflow", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "desktop", "Mobile-only assertion");
-    await page.goto("/");
+    await page.goto("/dashboard");
     await expect(page.getByRole("navigation", { name: "Mobile navigation" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Home" }).last()).toHaveAttribute("aria-current", "page");
     await expect(page.getByText("Complete your profile").last()).toBeVisible();
@@ -77,7 +77,7 @@ test.describe("Phase 1 dashboard shell", () => {
 
   test("keyboard focus reaches the mobile navigation", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "desktop", "Mobile-only assertion");
-    await page.goto("/");
+    await page.goto("/dashboard");
     await page.keyboard.press("Tab");
     await page.keyboard.press("Tab");
     const focusedTag = await page.evaluate(() => document.activeElement?.tagName);
@@ -89,7 +89,7 @@ test.describe("Phase 1 dashboard shell", () => {
   }, testInfo) => {
     test.skip(testInfo.project.name === "desktop", "Mobile-only assertion");
     await page.setViewportSize({ width: 412, height: 915 });
-    await page.goto("/");
+    await page.goto("/dashboard");
 
     await expect(page.locator(".mobile-header")).toBeVisible();
     await expect(page.locator(".opportunity-path-mobile")).toBeVisible();

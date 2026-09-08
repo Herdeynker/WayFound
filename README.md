@@ -1,12 +1,13 @@
 # WAYFOUND
 
-Phase 0 foundation for the authenticated WAYFOUND application. The marketing landing page and final dashboard are intentionally out of scope.
+Phase 2 foundation for the authenticated WAYFOUND application. The marketing landing page and Phase 3 passport are intentionally out of scope.
 
 ## Required software
 
 - Node.js 20.9 or later
 - npm 10 or later
-- Docker Desktop and the Supabase CLI for local database work
+- Supabase CLI 2.117 or later
+- Docker Desktop is optional; the hosted WAYFOUND development project is the current migration target
 
 This repository uses npm and commits `package-lock.json` for reproducible installs.
 
@@ -18,11 +19,11 @@ Copy-Item .env.example .env.local
 npm run dev
 ```
 
-Development does not require provider credentials; unavailable providers use controlled disabled adapters. Production requires `APP_URL`, `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`. Never commit `.env` or `.env.local`.
+Development uses the public Supabase URL/key in `NEXT_PUBLIC_SUPABASE_URL` plus `NEXT_PUBLIC_SUPABASE_ANON_KEY` or `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. Server-only operations use `SUPABASE_SECRET_KEY`; it is never exposed to browser code. Google remains disabled until `GOOGLE_OAUTH_ENABLED=true` and the Supabase provider is configured. Never commit `.env` or `.env.local`.
 
 ## Supabase
 
-Start local Supabase with `npm run supabase:start`, apply migrations and seed data with `npm run supabase:reset`, and regenerate database types with `npm run supabase:types`. Add future migrations as timestamp-prefixed files under `supabase/migrations`, review them, and apply them through the Supabase migration workflow. See [Phase 0 decisions](docs/architecture/phase-0-decisions.md).
+For the hosted development project, inspect and apply migrations with `npx supabase migration list --linked`, `npx supabase db push --linked --dry-run`, `npx supabase db push --linked`, and `npx supabase db lint --linked --schema public --fail-on error`. Local Docker commands remain available for future isolated work. Add future migrations as timestamp-prefixed files under `supabase/migrations`, review them, and apply them through the Supabase migration workflow. See [Phase 0 decisions](docs/architecture/phase-0-decisions.md) and [Phase 2 account lifecycle](docs/architecture/phase-2-account-lifecycle.md).
 
 ## Quality commands
 
@@ -50,7 +51,7 @@ Vercel can build the app with `npm run build`. Configure required production env
 
 ## Known Phase 0 limitations
 
-- No authentication, product dashboard, opportunity ingestion, matching, documents, payments, alerts or IELTS features are implemented.
+- Phase 2 includes authentication, protected routes, consent, account settings and lifecycle request foundations. Opportunity Passport, ingestion, matching, documents, payments, alerts and IELTS remain future phases.
 - No external provider adapter is live.
 - The health endpoint reports application/configuration readiness only; it does not perform a database connection check.
 - Durable job persistence, distributed rate limiting, error-tracking delivery and malware scanning require later operational wiring.
