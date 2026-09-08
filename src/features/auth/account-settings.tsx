@@ -78,6 +78,7 @@ export function AccountSettings({
           />
           <Checkbox
             checked={telegramEnabled}
+            disabled
             label="Telegram alerts (after I link an account)"
             onChange={(event) => setTelegramEnabled(event.target.checked)}
           />

@@ -12,7 +12,9 @@ export const consentSchema = z.object({
   profile_matching: z.boolean(),
   ai_processing: z.boolean(),
   document_storage: z.boolean(),
-  notifications: z.boolean(),
+  email_notifications: z.boolean().default(false),
+  telegram_notifications: z.boolean().default(false),
+  notifications: z.boolean().optional(),
 });
 
 export const preferencesSchema = z.object({

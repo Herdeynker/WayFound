@@ -6,7 +6,7 @@ import { DestinationArtwork } from "./destination-artwork";
 import { Icon, type IconName } from "./icons";
 import { DesktopRouteSignature, MobileProgressRoute, SidebarRouteSignature } from "./route-signatures";
 import { WayfoundLogo } from "./wayfound-logo";
-import { Avatar, Button, Chip, IconButton, SearchInput, Step } from "./ui";
+import { Avatar, Chip, IconButton, SearchInput, Step } from "./ui";
 
 type NavigationItem = { label: string; icon: IconName; href: string };
 
@@ -195,9 +195,9 @@ function OpportunityPathCard({ variant }: { variant: "desktop" | "mobile" }) {
         <MobileProgressRoute />
         <div className="mobile-path-footer">
           <span>Bigger opportunities ahead</span>
-          <Button variant="teal">
+          <a className="ui-button ui-button-teal" href="/onboarding">
             Continue setup <Icon name="arrow-right" size={22} />
-          </Button>
+          </a>
         </div>
       </section>
     );
@@ -226,9 +226,9 @@ function OpportunityPathCard({ variant }: { variant: "desktop" | "mobile" }) {
           <Step complete label="Documents" />
           <Step current label="Application practice" />
         </div>
-        <Button>
+        <a className="ui-button ui-button-primary" href="/onboarding">
           Continue setup <Icon name="arrow-right" size={23} />
-        </Button>
+        </a>
       </div>
       <strong className="path-readiness">
         <span>78%</span> ready
@@ -259,9 +259,9 @@ function NextBestActionCard({ variant }: { variant: "desktop" | "mobile" }) {
         <p>{dashboardFixture.nextAction.description}</p>
       </div>
       <ProfileIllustration />
-      <Button>
+      <a className="ui-button ui-button-primary" href="/onboarding">
         Continue setup <Icon name="arrow-right" size={22} />
-      </Button>
+      </a>
     </section>
   );
 }

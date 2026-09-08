@@ -24,6 +24,22 @@ export async function hasCurrentRequiredConsent(client: AuthClient, userId: stri
   return requiredConsentTypes.every((type) => granted.has(type));
 }
 
+export async function hasCurrentConsent(
+  client: AuthClient,
+  userId: string,
+  consentType: ConsentType,
+): Promise<boolean> {
+  const { data, error } = await client
+    .from("user_consents")
+    .select("granted")
+    .eq("user_id", userId)
+    .eq("policy_version", getPolicyVersion())
+    .eq("consent_type", consentType)
+    .eq("granted", true)
+    .limit(1);
+  return !error && Boolean(data?.length);
+}
+
 export async function bootstrapAccount(client: AuthClient, user: User): Promise<void> {
   const firstName =
     typeof user.user_metadata?.first_name === "string" ? user.user_metadata.first_name.trim() : "";

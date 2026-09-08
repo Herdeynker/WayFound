@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { isTestFixtureHeader, testAuthHeader } from "@/lib/auth/test-fixture";
 
-const protectedPrefixes = ["/dashboard", "/settings", "/consent"];
+const protectedPrefixes = ["/dashboard", "/settings", "/consent", "/onboarding"];
 
 function isProtectedPath(pathname: string): boolean {
   return (
@@ -57,5 +57,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/", "/dashboard/:path*", "/settings/:path*", "/consent/:path*"],
+  matcher: ["/", "/dashboard/:path*", "/settings/:path*", "/consent/:path*", "/onboarding/:path*"],
 };

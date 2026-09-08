@@ -8,5 +8,11 @@ export default async function HomePage() {
   const client = await createSupabaseServerClient();
   const user = await getCurrentUser(client);
   if (!user) redirect("/login");
-  redirect((await hasCurrentRequiredConsent(client, user.id)) ? "/dashboard" : "/consent");
+  if (!(await hasCurrentRequiredConsent(client, user.id))) redirect("/consent");
+  const { data: progress } = await client
+    .from("onboarding_progress")
+    .select("completion")
+    .eq("user_id", user.id)
+    .maybeSingle();
+  redirect(progress && progress.completion > 0 ? "/dashboard" : "/onboarding");
 }

@@ -14,7 +14,16 @@ export const consentCategories = [
     label: "Store documents I choose to upload in my private account.",
     required: true,
   },
-  { type: "notifications", label: "Send me helpful opportunity and deadline alerts.", required: false },
+  {
+    type: "email_notifications",
+    label: "Send me helpful opportunity and deadline alerts by email.",
+    required: false,
+  },
+  {
+    type: "telegram_notifications",
+    label: "Send me helpful opportunity and deadline alerts in Telegram.",
+    required: false,
+  },
 ] as const;
 
 export type ConsentType = (typeof consentCategories)[number]["type"];

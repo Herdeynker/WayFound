@@ -7,7 +7,8 @@ const choices = [
   ["profile_matching", "Use my profile to match me with relevant opportunities.", true],
   ["ai_processing", "Allow assisted processing to organize and explain my information.", true],
   ["document_storage", "Store documents I choose to upload in my private account.", true],
-  ["notifications", "Send me helpful opportunity and deadline alerts.", false],
+  ["email_notifications", "Send me helpful opportunity and deadline alerts by email.", false],
+  ["telegram_notifications", "Telegram alerts (available after a later account-linking update).", false],
 ] as const;
 
 export function ConsentForm() {
@@ -15,7 +16,8 @@ export function ConsentForm() {
     profile_matching: false,
     ai_processing: false,
     document_storage: false,
-    notifications: false,
+    email_notifications: false,
+    telegram_notifications: false,
   });
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
@@ -40,6 +42,7 @@ export function ConsentForm() {
           <Checkbox
             key={key}
             checked={values[key]}
+            disabled={key === "telegram_notifications"}
             label={`${label}${required ? " (required)" : ""}`}
             onChange={(event) => setValues((current) => ({ ...current, [key]: event.target.checked }))}
           />

@@ -15,7 +15,14 @@ export async function POST(request: NextRequest) {
   const client = createSupabaseRouteClient(request, response);
   const user = await getCurrentUser(client);
   if (!user) return NextResponse.json({ error: "Please sign in again." }, { status: 401 });
-  const result = await recordConsent(client, user.id, parsed.data);
+  const result = await recordConsent(client, user.id, {
+    profile_matching: parsed.data.profile_matching,
+    ai_processing: parsed.data.ai_processing,
+    document_storage: parsed.data.document_storage,
+    email_notifications: parsed.data.email_notifications,
+    telegram_notifications: parsed.data.telegram_notifications,
+    ...(parsed.data.notifications === undefined ? {} : { notifications: parsed.data.notifications }),
+  });
   if (result.error) return NextResponse.json({ error: result.error }, { status: 500 });
   return (await hasCurrentRequiredConsent(client, user.id))
     ? response
