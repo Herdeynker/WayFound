@@ -244,7 +244,7 @@ export async function getOpportunityDetail(client: Client, userId: string, oppor
 
 type TrustedApplicationRecord = {
   application_url: string | null;
-  organizations: { official_domain: string | null } | null;
+  organizations: { official_domain: string | null; verification_status: string } | null;
   opportunity_sources: Array<{
     active: boolean;
     is_primary: boolean;
@@ -270,14 +270,17 @@ async function getOfficialApplicationAction(card: OpportunityCardModel): Promise
     const result = await admin
       .from("opportunities")
       .select(
-        "application_url, organizations(official_domain), opportunity_sources(active,is_primary,source_registry(active,is_allowed,is_fixture,trust_tier,canonical_domain,allowed_domains))",
+        "application_url, organizations(official_domain,verification_status), opportunity_sources(active,is_primary,source_registry(active,is_allowed,is_fixture,trust_tier,canonical_domain,allowed_domains))",
       )
       .eq("id", card.id)
       .maybeSingle();
     if (result.error || !result.data)
       return { available: false, reason: "The official application link is currently unavailable." };
     const record = result.data as unknown as TrustedApplicationRecord;
-    const approvedDomains = [record.organizations?.official_domain ?? ""];
+    const approvedDomains =
+      record.organizations?.verification_status === "verified"
+        ? [record.organizations.official_domain ?? ""]
+        : [];
     for (const source of record.opportunity_sources ?? []) {
       const registry = source.source_registry;
       if (
