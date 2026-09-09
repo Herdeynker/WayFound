@@ -1456,6 +1456,451 @@ export type Database = {
         }
         Relationships: []
       }
+      match_country_rule_versions: {
+        Row: {
+          country_rule_id: string
+          id: string
+          match_evaluation_id: string
+          rule_version: number
+        }
+        Insert: {
+          country_rule_id: string
+          id?: string
+          match_evaluation_id: string
+          rule_version: number
+        }
+        Update: {
+          country_rule_id?: string
+          id?: string
+          match_evaluation_id?: string
+          rule_version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_country_rule_versions_country_rule_id_fkey"
+            columns: ["country_rule_id"]
+            isOneToOne: false
+            referencedRelation: "country_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_country_rule_versions_match_evaluation_id_fkey"
+            columns: ["match_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "match_evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_evaluations: {
+        Row: {
+          algorithm_version: string
+          candidate_rank: number
+          completed_at: string | null
+          confidence_assessment_id: string | null
+          eligibility_outcome: string
+          evaluated_at: string
+          id: string
+          input_fingerprint: string
+          match_score: number
+          opportunity_id: string
+          opportunity_version_id: string
+          profile_version_id: string
+          publication_decision: string
+          readiness_state: string
+          scoring_configuration_version: string
+          selection_factors: Json
+          user_id: string
+        }
+        Insert: {
+          algorithm_version: string
+          candidate_rank: number
+          completed_at?: string | null
+          confidence_assessment_id?: string | null
+          eligibility_outcome: string
+          evaluated_at?: string
+          id?: string
+          input_fingerprint: string
+          match_score: number
+          opportunity_id: string
+          opportunity_version_id: string
+          profile_version_id: string
+          publication_decision: string
+          readiness_state: string
+          scoring_configuration_version: string
+          selection_factors?: Json
+          user_id: string
+        }
+        Update: {
+          algorithm_version?: string
+          candidate_rank?: number
+          completed_at?: string | null
+          confidence_assessment_id?: string | null
+          eligibility_outcome?: string
+          evaluated_at?: string
+          id?: string
+          input_fingerprint?: string
+          match_score?: number
+          opportunity_id?: string
+          opportunity_version_id?: string
+          profile_version_id?: string
+          publication_decision?: string
+          readiness_state?: string
+          scoring_configuration_version?: string
+          selection_factors?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_evaluations_confidence_assessment_id_fkey"
+            columns: ["confidence_assessment_id"]
+            isOneToOne: false
+            referencedRelation: "confidence_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_evaluations_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_evaluations_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_evaluations_opportunity_version_id_fkey"
+            columns: ["opportunity_version_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_evaluations_profile_version_id_fkey"
+            columns: ["profile_version_id"]
+            isOneToOne: false
+            referencedRelation: "profile_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_feedback_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          id: string
+          idempotency_key: string
+          match_evaluation_id: string | null
+          metadata: Json
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          id?: string
+          idempotency_key: string
+          match_evaluation_id?: string | null
+          metadata?: Json
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          match_evaluation_id?: string | null
+          metadata?: Json
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_feedback_events_match_evaluation_id_fkey"
+            columns: ["match_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "match_evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_next_actions: {
+        Row: {
+          action_type: string
+          created_at: string
+          due_at: string | null
+          explanation: string
+          id: string
+          match_evaluation_id: string
+          priority: number
+          source_reason_id: string | null
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          due_at?: string | null
+          explanation: string
+          id?: string
+          match_evaluation_id: string
+          priority: number
+          source_reason_id?: string | null
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          due_at?: string | null
+          explanation?: string
+          id?: string
+          match_evaluation_id?: string
+          priority?: number
+          source_reason_id?: string | null
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_next_actions_match_evaluation_id_fkey"
+            columns: ["match_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "match_evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_next_actions_source_reason_id_fkey"
+            columns: ["source_reason_id"]
+            isOneToOne: false
+            referencedRelation: "match_reasons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_readiness_items: {
+        Row: {
+          created_at: string
+          document_type: string | null
+          evidence_id: string | null
+          explanation: string
+          id: string
+          item_key: string
+          match_evaluation_id: string
+          requirement_id: string | null
+          state: string
+        }
+        Insert: {
+          created_at?: string
+          document_type?: string | null
+          evidence_id?: string | null
+          explanation: string
+          id?: string
+          item_key: string
+          match_evaluation_id: string
+          requirement_id?: string | null
+          state: string
+        }
+        Update: {
+          created_at?: string
+          document_type?: string | null
+          evidence_id?: string | null
+          explanation?: string
+          id?: string
+          item_key?: string
+          match_evaluation_id?: string
+          requirement_id?: string | null
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_readiness_items_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_readiness_items_match_evaluation_id_fkey"
+            columns: ["match_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "match_evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_readiness_items_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_reasons: {
+        Row: {
+          created_at: string
+          evidence_id: string | null
+          id: string
+          match_evaluation_id: string
+          message: string
+          reason_type: string
+          requirement_id: string | null
+          sort_order: number
+        }
+        Insert: {
+          created_at?: string
+          evidence_id?: string | null
+          id?: string
+          match_evaluation_id: string
+          message: string
+          reason_type: string
+          requirement_id?: string | null
+          sort_order: number
+        }
+        Update: {
+          created_at?: string
+          evidence_id?: string | null
+          id?: string
+          match_evaluation_id?: string
+          message?: string
+          reason_type?: string
+          requirement_id?: string | null
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_reasons_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_reasons_match_evaluation_id_fkey"
+            columns: ["match_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "match_evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_reasons_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_requirement_results: {
+        Row: {
+          created_at: string
+          evidence_id: string | null
+          explanation: string
+          id: string
+          match_evaluation_id: string
+          operator: string
+          opportunity_requirement_id: string | null
+          outcome: string
+          requirement_category: string
+          requirement_strength: string
+          value_state: Json
+        }
+        Insert: {
+          created_at?: string
+          evidence_id?: string | null
+          explanation: string
+          id?: string
+          match_evaluation_id: string
+          operator: string
+          opportunity_requirement_id?: string | null
+          outcome: string
+          requirement_category: string
+          requirement_strength: string
+          value_state?: Json
+        }
+        Update: {
+          created_at?: string
+          evidence_id?: string | null
+          explanation?: string
+          id?: string
+          match_evaluation_id?: string
+          operator?: string
+          opportunity_requirement_id?: string | null
+          outcome?: string
+          requirement_category?: string
+          requirement_strength?: string
+          value_state?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_requirement_results_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_requirement_results_match_evaluation_id_fkey"
+            columns: ["match_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "match_evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_requirement_results_opportunity_requirement_id_fkey"
+            columns: ["opportunity_requirement_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_score_components: {
+        Row: {
+          component_code: string
+          contribution: number
+          created_at: string
+          explanation: string
+          id: string
+          match_evaluation_id: string
+          score: number
+          weight: number
+        }
+        Insert: {
+          component_code: string
+          contribution: number
+          created_at?: string
+          explanation: string
+          id?: string
+          match_evaluation_id: string
+          score: number
+          weight: number
+        }
+        Update: {
+          component_code?: string
+          contribution?: number
+          created_at?: string
+          explanation?: string
+          id?: string
+          match_evaluation_id?: string
+          score?: number
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_score_components_match_evaluation_id_fkey"
+            columns: ["match_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "match_evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_preferences: {
         Row: {
           email_enabled: boolean
