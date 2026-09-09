@@ -89,6 +89,316 @@ button:disabled {
   display: flex;
   overflow-x: clip;
 }
+
+/* Phase 8 Explore and detail surfaces. The existing Direction A tokens remain authoritative. */
+.opportunity-experience,
+.opportunity-detail {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vw, 52px) clamp(18px, 3vw, 34px) calc(var(--mobile-nav-height) + 32px);
+}
+.explore-hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+}
+.explore-hero h1,
+.opportunity-detail h1 {
+  margin: 4px 0 10px;
+  color: var(--color-navy-800);
+  font: 800 clamp(32px, 4vw, 50px)/1 var(--font-sora);
+}
+.explore-hero p {
+  max-width: 650px;
+  margin: 0;
+  color: var(--color-slate);
+  font-size: 17px;
+}
+.eyebrow {
+  margin: 0;
+  color: var(--color-teal-600);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+}
+.explore-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 170px auto auto;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.explore-toolbar .ui-button {
+  min-height: 52px;
+  white-space: nowrap;
+}
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0 14px;
+}
+.active-filters button {
+  border: 1px solid var(--color-mist);
+  border-radius: 999px;
+  background: white;
+  color: var(--color-navy-800);
+  padding: 7px 11px;
+  font-size: 13px;
+}
+.active-filters button:last-child {
+  border: 0;
+  background: none;
+  color: var(--color-teal-600);
+  text-decoration: underline;
+}
+.feed-count {
+  margin: 0 0 14px;
+  color: var(--color-slate);
+  font-size: 14px;
+}
+.opportunity-feed {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+.explore-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-md);
+  background: white;
+  padding: 18px;
+  box-shadow: var(--shadow-card);
+}
+.explore-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.explore-card-top > div {
+  display: flex;
+  gap: 2px;
+}
+.explore-card .icon-button {
+  width: 38px;
+  height: 38px;
+}
+.explore-card h2 {
+  margin: 16px 0 5px;
+  font: 750 20px/1.2 var(--font-sora);
+}
+.explore-card h2 a {
+  text-decoration: none;
+}
+.explore-card h2 a:hover,
+.detail-link:hover {
+  text-decoration: underline;
+}
+.org-line {
+  margin: 0;
+  color: var(--color-slate);
+  font-size: 14px;
+}
+.fit-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 17px 0 11px;
+}
+.fit-row strong {
+  color: var(--color-teal-600);
+  font: 800 30px/1 var(--font-sora);
+}
+.fit-row > span {
+  color: var(--color-slate);
+  font-size: 13px;
+}
+.reason-line,
+.deadline-line,
+.warning-line {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  margin: 10px 0;
+  color: #36516c;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.warning-line {
+  border-left: 3px solid var(--color-amber-500);
+  background: var(--color-amber-100);
+  padding: 9px 10px;
+  color: #704600;
+}
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 14px;
+}
+.detail-link {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-teal-600);
+  font-weight: 750;
+  font-size: 14px;
+  text-decoration: none;
+}
+.back-link {
+  color: var(--color-teal-600);
+  font-weight: 700;
+  text-decoration: none;
+}
+.opportunity-detail {
+  max-width: 880px;
+}
+.opportunity-detail header {
+  margin: 20px 0 28px;
+  padding: clamp(22px, 4vw, 38px);
+  border-radius: var(--radius-lg);
+  background: var(--color-navy-800);
+  color: white;
+}
+.opportunity-detail header h1 {
+  color: white;
+}
+.opportunity-detail header p {
+  color: #d4e0e8;
+}
+.detail-section {
+  margin: 18px 0;
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-md);
+  background: white;
+  padding: clamp(18px, 3vw, 28px);
+}
+.detail-section h2 {
+  margin: 0 0 14px;
+  color: var(--color-navy-800);
+  font: 750 22px var(--font-sora);
+}
+.detail-section p {
+  color: #405a72;
+  line-height: 1.55;
+}
+.detail-section ul {
+  display: grid;
+  gap: 13px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.detail-section li {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) auto;
+  gap: 5px 12px;
+  border-bottom: 1px solid var(--color-mist);
+  padding-bottom: 12px;
+  color: #405a72;
+  font-size: 14px;
+}
+.detail-section li span {
+  grid-column: 1/-1;
+}
+.next-detail-action {
+  border-radius: var(--radius-sm);
+  background: var(--color-amber-100);
+  padding: 18px;
+}
+.next-detail-action h2 {
+  margin: 10px 0 4px;
+}
+.filter-form {
+  display: grid;
+  gap: 16px;
+}
+.filter-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--color-navy-800);
+  font-weight: 700;
+}
+.filter-form .ui-select {
+  height: 46px;
+  background: white;
+}
+.filter-form .ui-button {
+  min-height: 48px;
+}
+.state-card {
+  max-width: 680px;
+  margin: 72px auto;
+  padding: 36px;
+  border: 1px solid var(--color-mist);
+  border-radius: var(--radius-lg);
+  background: white;
+  text-align: center;
+}
+.state-card h3 {
+  font: 750 24px var(--font-sora);
+  color: var(--color-navy-800);
+}
+@media (max-width: 900px) {
+  .opportunity-feed {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .explore-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .explore-toolbar .search-input {
+    grid-column: 1/-1;
+    width: 100%;
+  }
+}
+@media (max-width: 767px) {
+  .opportunity-experience,
+  .opportunity-detail {
+    padding: 24px 16px calc(var(--mobile-nav-height) + 28px);
+  }
+  .explore-hero {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .explore-hero h1,
+  .opportunity-detail h1 {
+    font-size: 34px;
+  }
+  .explore-toolbar {
+    grid-template-columns: 1fr 1fr;
+  }
+  .explore-toolbar .ui-select {
+    min-width: 0;
+  }
+  .opportunity-feed {
+    grid-template-columns: 1fr;
+  }
+  .explore-card {
+    padding: 17px;
+  }
+  .detail-section li {
+    grid-template-columns: 1fr;
+  }
+  .detail-section li span {
+    grid-column: auto;
+  }
+  .opportunity-detail header {
+    padding: 24px 20px;
+  }
+  .drawer {
+    max-height: 85svh;
+  }
+  .fit-row strong {
+    font-size: 29px;
+  }
+}
 .app-content {
   min-width: 0;
   flex: 1;
