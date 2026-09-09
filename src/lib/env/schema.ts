@@ -28,6 +28,8 @@ export const serverEnvironmentSchema = z.object({
   PAYMENT_SECRET_KEY: optionalText,
   SENTRY_DSN: optionalText,
   CRON_SECRET: optionalText,
+  INGESTION_CRON_ENABLED: z.preprocess(emptyToUndefined, z.enum(["true", "false"]).optional()),
+  INGESTION_MAX_SOURCES: z.preprocess(emptyToUndefined, z.coerce.number().int().min(1).max(8).optional()),
   FEATURE_FLAGS_JSON: optionalText,
   GOOGLE_OAUTH_ENABLED: z.preprocess(emptyToUndefined, z.enum(["true", "false"]).optional()),
   PHASE2_POLICY_VERSION: optionalText,

@@ -886,6 +886,397 @@ export type Database = {
           },
         ]
       }
+      ingestion_candidates: {
+        Row: {
+          canonical_url: string
+          content_hash: string
+          created_at: string
+          external_source_id: string | null
+          extraction_schema_version: string
+          extraction_status: string
+          id: string
+          normalized_payload: Json
+          safe_rejection_reason: string | null
+          source_id: string
+          source_run_id: string
+        }
+        Insert: {
+          canonical_url: string
+          content_hash: string
+          created_at?: string
+          external_source_id?: string | null
+          extraction_schema_version: string
+          extraction_status: string
+          id?: string
+          normalized_payload: Json
+          safe_rejection_reason?: string | null
+          source_id: string
+          source_run_id: string
+        }
+        Update: {
+          canonical_url?: string
+          content_hash?: string
+          created_at?: string
+          external_source_id?: string | null
+          extraction_schema_version?: string
+          extraction_status?: string
+          id?: string
+          normalized_payload?: Json
+          safe_rejection_reason?: string | null
+          source_id?: string
+          source_run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_candidates_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "source_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingestion_candidates_source_run_id_fkey"
+            columns: ["source_run_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_source_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingestion_checkpoints: {
+        Row: {
+          adapter_identifier: string
+          adapter_version: string
+          cursor: Json
+          last_completed_at: string | null
+          last_successful_run_id: string | null
+          source_id: string
+          updated_at: string
+        }
+        Insert: {
+          adapter_identifier: string
+          adapter_version: string
+          cursor?: Json
+          last_completed_at?: string | null
+          last_successful_run_id?: string | null
+          source_id: string
+          updated_at?: string
+        }
+        Update: {
+          adapter_identifier?: string
+          adapter_version?: string
+          cursor?: Json
+          last_completed_at?: string | null
+          last_successful_run_id?: string | null
+          source_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_checkpoints_last_successful_run_id_fkey"
+            columns: ["last_successful_run_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingestion_checkpoints_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: true
+            referencedRelation: "source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingestion_failures: {
+        Row: {
+          attempt_number: number
+          candidate_external_source_id: string | null
+          classification: string
+          created_at: string
+          failure_stage: string
+          id: string
+          next_retry_at: string | null
+          resolved_at: string | null
+          retryable: boolean
+          safe_error_summary: string
+          source_run_id: string
+        }
+        Insert: {
+          attempt_number: number
+          candidate_external_source_id?: string | null
+          classification: string
+          created_at?: string
+          failure_stage: string
+          id?: string
+          next_retry_at?: string | null
+          resolved_at?: string | null
+          retryable: boolean
+          safe_error_summary: string
+          source_run_id: string
+        }
+        Update: {
+          attempt_number?: number
+          candidate_external_source_id?: string | null
+          classification?: string
+          created_at?: string
+          failure_stage?: string
+          id?: string
+          next_retry_at?: string | null
+          resolved_at?: string | null
+          retryable?: boolean
+          safe_error_summary?: string
+          source_run_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_failures_source_run_id_fkey"
+            columns: ["source_run_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_source_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingestion_leases: {
+        Row: {
+          correlation_id: string
+          created_at: string
+          lease_expires_at: string
+          lease_owner: string
+          source_id: string
+          updated_at: string
+        }
+        Insert: {
+          correlation_id: string
+          created_at?: string
+          lease_expires_at: string
+          lease_owner: string
+          source_id: string
+          updated_at?: string
+        }
+        Update: {
+          correlation_id?: string
+          created_at?: string
+          lease_expires_at?: string
+          lease_owner?: string
+          source_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_leases_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: true
+            referencedRelation: "source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingestion_responses: {
+        Row: {
+          byte_length: number
+          content_hash: string | null
+          content_type: string | null
+          etag: string | null
+          excerpt: string | null
+          final_url: string
+          id: string
+          last_modified: string | null
+          metadata: Json
+          request_url: string
+          retrieved_at: string
+          source_id: string
+          source_run_id: string
+          status_code: number
+        }
+        Insert: {
+          byte_length: number
+          content_hash?: string | null
+          content_type?: string | null
+          etag?: string | null
+          excerpt?: string | null
+          final_url: string
+          id?: string
+          last_modified?: string | null
+          metadata?: Json
+          request_url: string
+          retrieved_at?: string
+          source_id: string
+          source_run_id: string
+          status_code: number
+        }
+        Update: {
+          byte_length?: number
+          content_hash?: string | null
+          content_type?: string | null
+          etag?: string | null
+          excerpt?: string | null
+          final_url?: string
+          id?: string
+          last_modified?: string | null
+          metadata?: Json
+          request_url?: string
+          retrieved_at?: string
+          source_id?: string
+          source_run_id?: string
+          status_code?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_responses_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "source_registry"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingestion_responses_source_run_id_fkey"
+            columns: ["source_run_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_source_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ingestion_runs: {
+        Row: {
+          adapter_identifier: string
+          adapter_version: string
+          conflicted_count: number
+          correlation_id: string
+          created_count: number
+          finished_at: string | null
+          id: string
+          rejected_count: number
+          retry_count: number
+          safe_error_summary: string | null
+          source_count: number
+          started_at: string
+          state: string
+          unchanged_count: number
+          updated_count: number
+        }
+        Insert: {
+          adapter_identifier: string
+          adapter_version: string
+          conflicted_count?: number
+          correlation_id: string
+          created_count?: number
+          finished_at?: string | null
+          id?: string
+          rejected_count?: number
+          retry_count?: number
+          safe_error_summary?: string | null
+          source_count?: number
+          started_at?: string
+          state?: string
+          unchanged_count?: number
+          updated_count?: number
+        }
+        Update: {
+          adapter_identifier?: string
+          adapter_version?: string
+          conflicted_count?: number
+          correlation_id?: string
+          created_count?: number
+          finished_at?: string | null
+          id?: string
+          rejected_count?: number
+          retry_count?: number
+          safe_error_summary?: string | null
+          source_count?: number
+          started_at?: string
+          state?: string
+          unchanged_count?: number
+          updated_count?: number
+        }
+        Relationships: []
+      }
+      ingestion_source_runs: {
+        Row: {
+          adapter_identifier: string
+          adapter_version: string
+          checkpoint_after: Json
+          checkpoint_before: Json
+          created_at: string
+          error_classification: string | null
+          finished_at: string | null
+          id: string
+          ingestion_run_id: string
+          pages_seen: number
+          records_conflicted: number
+          records_created: number
+          records_seen: number
+          records_unchanged: number
+          records_updated: number
+          retry_count: number
+          safe_error_summary: string | null
+          source_id: string
+          started_at: string | null
+          state: string
+        }
+        Insert: {
+          adapter_identifier: string
+          adapter_version: string
+          checkpoint_after?: Json
+          checkpoint_before?: Json
+          created_at?: string
+          error_classification?: string | null
+          finished_at?: string | null
+          id?: string
+          ingestion_run_id: string
+          pages_seen?: number
+          records_conflicted?: number
+          records_created?: number
+          records_seen?: number
+          records_unchanged?: number
+          records_updated?: number
+          retry_count?: number
+          safe_error_summary?: string | null
+          source_id: string
+          started_at?: string | null
+          state?: string
+        }
+        Update: {
+          adapter_identifier?: string
+          adapter_version?: string
+          checkpoint_after?: Json
+          checkpoint_before?: Json
+          created_at?: string
+          error_classification?: string | null
+          finished_at?: string | null
+          id?: string
+          ingestion_run_id?: string
+          pages_seen?: number
+          records_conflicted?: number
+          records_created?: number
+          records_seen?: number
+          records_unchanged?: number
+          records_updated?: number
+          retry_count?: number
+          safe_error_summary?: string | null
+          source_id?: string
+          started_at?: string | null
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ingestion_source_runs_ingestion_run_id_fkey"
+            columns: ["ingestion_run_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_runs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ingestion_source_runs_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       language_profiles: {
         Row: {
           component_scores: Json
@@ -1523,6 +1914,55 @@ export type Database = {
           },
         ]
       }
+      opportunity_duplicate_candidates: {
+        Row: {
+          created_at: string
+          existing_opportunity_id: string
+          id: string
+          ingestion_candidate_id: string
+          match_basis: string
+          state: string
+        }
+        Insert: {
+          created_at?: string
+          existing_opportunity_id: string
+          id?: string
+          ingestion_candidate_id: string
+          match_basis: string
+          state?: string
+        }
+        Update: {
+          created_at?: string
+          existing_opportunity_id?: string
+          id?: string
+          ingestion_candidate_id?: string
+          match_basis?: string
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_duplicate_candidates_existing_opportunity_id_fkey"
+            columns: ["existing_opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_duplicate_candidates_existing_opportunity_id_fkey"
+            columns: ["existing_opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_duplicate_candidates_ingestion_candidate_id_fkey"
+            columns: ["ingestion_candidate_id"]
+            isOneToOne: false
+            referencedRelation: "ingestion_candidates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunity_evidence: {
         Row: {
           active: boolean
@@ -2122,8 +2562,13 @@ export type Database = {
       source_registry: {
         Row: {
           active: boolean
+          adapter_identifier: string | null
+          adapter_version: string | null
+          allowed_domains: string[]
           base_url: string
           canonical_domain: string
+          concurrency_limit: number
+          consecutive_failure_count: number
           country_id: string | null
           crawl_policy_notes: string
           created_at: string
@@ -2135,8 +2580,13 @@ export type Database = {
           is_official_source: boolean
           last_failed_check_at: string | null
           last_successful_check_at: string | null
+          next_eligible_run_at: string | null
           parser_adapter_identifier: string | null
+          redirect_limit: number
           refresh_frequency_hours: number | null
+          request_timeout_ms: number
+          response_size_limit_bytes: number
+          retry_limit: number
           robots_policy_status: string
           source_name: string
           source_type: string
@@ -2146,8 +2596,13 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          adapter_identifier?: string | null
+          adapter_version?: string | null
+          allowed_domains?: string[]
           base_url: string
           canonical_domain: string
+          concurrency_limit?: number
+          consecutive_failure_count?: number
           country_id?: string | null
           crawl_policy_notes?: string
           created_at?: string
@@ -2159,8 +2614,13 @@ export type Database = {
           is_official_source?: boolean
           last_failed_check_at?: string | null
           last_successful_check_at?: string | null
+          next_eligible_run_at?: string | null
           parser_adapter_identifier?: string | null
+          redirect_limit?: number
           refresh_frequency_hours?: number | null
+          request_timeout_ms?: number
+          response_size_limit_bytes?: number
+          retry_limit?: number
           robots_policy_status?: string
           source_name: string
           source_type: string
@@ -2170,8 +2630,13 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          adapter_identifier?: string | null
+          adapter_version?: string | null
+          allowed_domains?: string[]
           base_url?: string
           canonical_domain?: string
+          concurrency_limit?: number
+          consecutive_failure_count?: number
           country_id?: string | null
           crawl_policy_notes?: string
           created_at?: string
@@ -2183,8 +2648,13 @@ export type Database = {
           is_official_source?: boolean
           last_failed_check_at?: string | null
           last_successful_check_at?: string | null
+          next_eligible_run_at?: string | null
           parser_adapter_identifier?: string | null
+          redirect_limit?: number
           refresh_frequency_hours?: number | null
+          request_timeout_ms?: number
+          response_size_limit_bytes?: number
+          retry_limit?: number
           robots_policy_status?: string
           source_name?: string
           source_type?: string
@@ -2555,6 +3025,20 @@ export type Database = {
       }
       phase4_valid_condition: { Args: { value: Json }; Returns: boolean }
       phase4_valid_normalized_value: { Args: { value: Json }; Returns: boolean }
+      phase5_acquire_source_lease: {
+        Args: {
+          correlation: string
+          duration_seconds?: number
+          owner: string
+          source: string
+        }
+        Returns: boolean
+      }
+      phase5_domains_valid: { Args: { domains: string[] }; Returns: boolean }
+      phase5_release_source_lease: {
+        Args: { owner: string; source: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never

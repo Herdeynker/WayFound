@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+const baseURL = `http://127.0.0.1:${process.env.PLAYWRIGHT_PORT ?? "3000"}`;
+
 test.describe("Phase 2 access boundaries", () => {
   test("renders mobile-friendly sign-in and honest provider fallback", async ({ page }) => {
     await page.goto("/login");
@@ -10,7 +12,7 @@ test.describe("Phase 2 access boundaries", () => {
 
   test("does not let an unauthenticated request open the dashboard", async ({ playwright }) => {
     const context = await playwright.request.newContext({
-      baseURL: "http://127.0.0.1:3000",
+      baseURL,
       maxRedirects: 0,
       extraHTTPHeaders: { "x-wayfound-test-auth": "unauthenticated-check" },
     });
@@ -22,7 +24,7 @@ test.describe("Phase 2 access boundaries", () => {
 
   test("keeps OAuth disabled response honest", async ({ playwright }) => {
     const context = await playwright.request.newContext({
-      baseURL: "http://127.0.0.1:3000",
+      baseURL,
       maxRedirects: 0,
     });
     const response = await context.get("/api/auth/oauth?next=https%3A%2F%2Fevil.example");
