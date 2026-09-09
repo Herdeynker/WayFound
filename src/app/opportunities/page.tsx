@@ -15,7 +15,8 @@ export default async function OpportunitiesPage({
       .filter(([, value]) => value !== undefined)
       .map(([key, value]) => [key, String(value)]),
   );
-  if (await isTestFixtureRequest()) return <OpportunityFeed initial={phase8FixtureFeed()} query={query} />;
+  if (await isTestFixtureRequest())
+    return <OpportunityFeed initial={phase8FixtureFeed(parsed.data)} query={query} />;
   const { client, user } = await requireConsentedUser();
   if (!user) return null;
   try {

@@ -21,5 +21,17 @@ describe("Phase 8 opportunity experience", () => {
     render(<OpportunityDetail detail={phase8FixtureDetail("demo-professional")} />);
     expect(screen.getByRole("heading", { name: "Why this matches" })).toBeVisible();
     expect(screen.getByText(/does not guarantee eligibility/)).toBeVisible();
+    expect(screen.getByText(/Official application link unavailable/)).toBeVisible();
+  });
+  it("uses safe new-window attributes for a validated official application link", () => {
+    render(<OpportunityDetail detail={phase8FixtureDetail("demo-scholarship")} />);
+    expect(screen.getByRole("link", { name: /Apply on the official site/ })).toHaveAttribute(
+      "target",
+      "_blank",
+    );
+    expect(screen.getByRole("link", { name: /Apply on the official site/ })).toHaveAttribute(
+      "rel",
+      "noopener noreferrer",
+    );
   });
 });

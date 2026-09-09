@@ -1,4 +1,4 @@
-import type { FeedResult, OpportunityCardModel } from "@/server/opportunity-experience/query";
+import type { FeedQuery, FeedResult, OpportunityCardModel } from "@/server/opportunity-experience/query";
 
 const cards: OpportunityCardModel[] = [
   {
@@ -19,6 +19,7 @@ const cards: OpportunityCardModel[] = [
     saved: false,
     dismissed: false,
     lastCheckedAt: "2026-09-08T10:00:00.000Z",
+    applicationUrl: "https://apply.northbridge.example/apply",
   },
   {
     id: "demo-professional",
@@ -38,6 +39,7 @@ const cards: OpportunityCardModel[] = [
     saved: false,
     dismissed: false,
     lastCheckedAt: "2026-09-07T10:00:00.000Z",
+    applicationUrl: "https://careers.meridian.example/jobs/42",
   },
   {
     id: "demo-trade",
@@ -57,11 +59,20 @@ const cards: OpportunityCardModel[] = [
     saved: false,
     dismissed: false,
     lastCheckedAt: "2026-09-06T10:00:00.000Z",
+    applicationUrl: "https://apply.maple.example/roles/electrician",
   },
 ];
 
-export function phase8FixtureFeed(): FeedResult {
-  return { items: cards, page: 1, hasMore: false, state: "ready" };
+export function phase8FixtureFeed(query: Partial<FeedQuery> = {}): FeedResult {
+  if (query.q === "permission-denied")
+    return { items: [], page: 1, hasMore: false, state: "permission_denied" };
+  const needle = query.q?.toLocaleLowerCase();
+  const items = needle
+    ? cards.filter((card) =>
+        `${card.title} ${card.organization} ${card.destination}`.toLocaleLowerCase().includes(needle),
+      )
+    : cards;
+  return { items, page: 1, hasMore: false, state: items.length ? "ready" : "empty" };
 }
 export function phase8FixtureDetail(id: string) {
   const card = cards.find((item) => item.id === id) ?? cards[0];
@@ -104,5 +115,12 @@ export function phase8FixtureDetail(id: string) {
     reasons: [
       { reason_type: "match_factor", message: card.reason ?? "Your Passport aligns with this opportunity." },
     ],
+    application:
+      card.decision === "allow"
+        ? { available: true as const, url: card.applicationUrl! }
+        : {
+            available: false as const,
+            reason: "This match needs more verification before an application link can be used.",
+          },
   };
 }

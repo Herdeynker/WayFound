@@ -12,6 +12,12 @@ test.describe("Phase 8 opportunity experience", () => {
     await page.getByRole("link", { name: "Software Engineer" }).click();
     await expect(page.getByRole("heading", { name: "Why this matches" })).toBeVisible();
     await expect(page.getByText(/Employer capability only/)).toBeVisible();
+    await expect(page.getByText(/Official application link unavailable/)).toBeVisible();
+    await page.goto("/opportunities/demo-scholarship");
+    await expect(page.getByRole("link", { name: /Apply on the official site/ })).toHaveAttribute(
+      "rel",
+      "noopener noreferrer",
+    );
   });
   test("has a mobile-safe opportunity feed", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name === "desktop", "mobile-only assertion");

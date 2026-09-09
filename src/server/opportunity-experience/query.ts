@@ -3,6 +3,8 @@ import "server-only";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/server/supabase/database.types";
+import { createSupabaseAdminClient } from "@/server/supabase/admin";
+import { type OfficialApplicationAction, validateOfficialApplicationUrl } from "./application-link";
 
 type Client = SupabaseClient<Database, "public">;
 const pageSize = 12;
@@ -43,13 +45,14 @@ export type OpportunityCardModel = {
   saved: boolean;
   dismissed: boolean;
   lastCheckedAt: string | null;
+  applicationUrl: string | null;
 };
 
 export type FeedResult = {
   items: OpportunityCardModel[];
   page: number;
   hasMore: boolean;
-  state: "ready" | "passport_incomplete" | "matching_unavailable" | "empty";
+  state: "ready" | "passport_incomplete" | "matching_unavailable" | "empty" | "permission_denied";
 };
 
 const labels: Record<string, string> = {
@@ -115,7 +118,7 @@ export async function getOpportunityFeed(
     client
       .from("safe_active_opportunities")
       .select(
-        "id, title, organization_name, destination_country, destination_country_code, opportunity_type, opportunity_type_code, application_deadline, rolling_deadline, sponsorship_status, last_checked_at, lifecycle_status",
+        "id, title, organization_name, destination_country, destination_country_code, opportunity_type, opportunity_type_code, application_deadline, rolling_deadline, sponsorship_status, last_checked_at, lifecycle_status, application_url",
       )
       .in("id", opportunityIds),
     client
@@ -159,6 +162,7 @@ export async function getOpportunityFeed(
       saved: states.saved.has(match.id),
       dismissed: false as boolean,
       lastCheckedAt: opportunity.last_checked_at,
+      applicationUrl: opportunity.application_url,
     } satisfies OpportunityCardModel;
   });
   let items: OpportunityCardModel[] = mapped.filter((item): item is OpportunityCardModel => item !== null);
@@ -234,7 +238,64 @@ export async function getOpportunityDetail(client: Client, userId: string, oppor
     readiness: readiness.data ?? [],
     action: action.data,
     reasons: reasons.data ?? [],
+    application: await getOfficialApplicationAction(card),
   };
+}
+
+type TrustedApplicationRecord = {
+  application_url: string | null;
+  organizations: { official_domain: string | null } | null;
+  opportunity_sources: Array<{
+    active: boolean;
+    is_primary: boolean;
+    source_registry: {
+      active: boolean;
+      allowed_domains: string[];
+      canonical_domain: string;
+      is_allowed: boolean;
+      is_fixture: boolean;
+      trust_tier: number;
+    } | null;
+  }>;
+};
+
+async function getOfficialApplicationAction(card: OpportunityCardModel): Promise<OfficialApplicationAction> {
+  if (card.decision !== "allow")
+    return {
+      available: false,
+      reason: "This match needs more verification before an application link can be used.",
+    };
+  try {
+    const admin = createSupabaseAdminClient();
+    const result = await admin
+      .from("opportunities")
+      .select(
+        "application_url, organizations(official_domain), opportunity_sources(active,is_primary,source_registry(active,is_allowed,is_fixture,trust_tier,canonical_domain,allowed_domains))",
+      )
+      .eq("id", card.id)
+      .maybeSingle();
+    if (result.error || !result.data)
+      return { available: false, reason: "The official application link is currently unavailable." };
+    const record = result.data as unknown as TrustedApplicationRecord;
+    const approvedDomains = [record.organizations?.official_domain ?? ""];
+    for (const source of record.opportunity_sources ?? []) {
+      const registry = source.source_registry;
+      if (
+        !source.active ||
+        !source.is_primary ||
+        !registry ||
+        !registry.active ||
+        !registry.is_allowed ||
+        registry.is_fixture ||
+        registry.trust_tier > 3
+      )
+        continue;
+      approvedDomains.push(registry.canonical_domain, ...registry.allowed_domains);
+    }
+    return validateOfficialApplicationUrl(record.application_url ?? card.applicationUrl, approvedDomains);
+  } catch {
+    return { available: false, reason: "The official application link is currently unavailable." };
+  }
 }
 
 export function parseFeedQuery(searchParams: Record<string, string | string[] | undefined>) {

@@ -15,6 +15,10 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./tests/setup.ts"],
     include: ["tests/**/*.test.ts", "tests/**/*.test.tsx"],
+    // Hosted Supabase suites create and remove temporary users and issue short-lived
+    // credentials. Serial files avoid an intermittent upstream JWT clock race while
+    // preserving every assertion and test case.
+    fileParallelism: false,
     coverage: { reporter: ["text", "html"], include: ["src/**/*.ts", "src/**/*.tsx"] },
   },
 });

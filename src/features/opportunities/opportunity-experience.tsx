@@ -90,6 +90,13 @@ export function OpportunityFeed({ initial, query }: { initial: FeedResult; query
         title="Matches are being prepared"
       />
     );
+  if (initial.state === "permission_denied")
+    return (
+      <ErrorState
+        description="Your opportunity results are private to your signed-in account. Please sign in again to continue."
+        title="We could not verify access to your matches"
+      />
+    );
   if (initial.state === "empty")
     return (
       <EmptyState
@@ -379,9 +386,20 @@ export function OpportunityDetail({
           {deadlineLabel(card)}. Use the official application link only after reviewing the source. WAYFOUND
           does not guarantee eligibility, funding, work, sponsorship, admission or visa approval.
         </p>
-        <Button disabled variant="secondary">
-          Official link unavailable in this safe preview
-        </Button>
+        {detail.application.available ? (
+          <a
+            className="ui-button ui-button-primary"
+            href={detail.application.url}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Apply on the official site <Icon name="arrow-right" size={20} />
+          </a>
+        ) : (
+          <p className="application-unavailable" role="note">
+            Official application link unavailable: {detail.application.reason}
+          </p>
+        )}
       </DetailSection>
     </article>
   );
