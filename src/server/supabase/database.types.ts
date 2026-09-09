@@ -205,6 +205,134 @@ export type Database = {
         }
         Relationships: []
       }
+      confidence_assessments: {
+        Row: {
+          algorithm_version: string
+          assessed_at: string
+          assessment_type: string
+          decision: string
+          id: string
+          input_fingerprint: string
+          opportunity_id: string
+          opportunity_version_id: string | null
+          recheck_required: boolean
+          source_confidence: number
+          sponsorship_confidence: number
+          sponsorship_outcome: string
+          staleness_state: string
+        }
+        Insert: {
+          algorithm_version: string
+          assessed_at?: string
+          assessment_type: string
+          decision: string
+          id?: string
+          input_fingerprint: string
+          opportunity_id: string
+          opportunity_version_id?: string | null
+          recheck_required?: boolean
+          source_confidence: number
+          sponsorship_confidence: number
+          sponsorship_outcome: string
+          staleness_state: string
+        }
+        Update: {
+          algorithm_version?: string
+          assessed_at?: string
+          assessment_type?: string
+          decision?: string
+          id?: string
+          input_fingerprint?: string
+          opportunity_id?: string
+          opportunity_version_id?: string | null
+          recheck_required?: boolean
+          source_confidence?: number
+          sponsorship_confidence?: number
+          sponsorship_outcome?: string
+          staleness_state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "confidence_assessments_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confidence_assessments_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confidence_assessments_opportunity_version_id_fkey"
+            columns: ["opportunity_version_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      confidence_factors: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          direction: string
+          evidence_id: string | null
+          factor_code: string
+          id: string
+          reason: string
+          source_id: string | null
+          value: number
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          direction: string
+          evidence_id?: string | null
+          factor_code: string
+          id?: string
+          reason: string
+          source_id?: string | null
+          value: number
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          direction?: string
+          evidence_id?: string | null
+          factor_code?: string
+          id?: string
+          reason?: string
+          source_id?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "confidence_factors_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "confidence_assessments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confidence_factors_evidence_id_fkey"
+            columns: ["evidence_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_evidence"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "confidence_factors_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       countries: {
         Row: {
           created_at: string
