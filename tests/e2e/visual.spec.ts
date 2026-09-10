@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 1 visual evidence", () => {
+test.describe("@visual Phase 1 visual evidence", () => {
   test.setTimeout(120_000);
 
   test("captures approved desktop and mobile viewport evidence", async ({ page }, testInfo) => {
@@ -20,7 +20,10 @@ test.describe("Phase 1 visual evidence", () => {
       await page.setViewportSize({ width, height });
       await page.goto("/dashboard");
       await expect(page.locator("body")).toBeVisible();
-      await page.screenshot({ path: `artifacts/phase-1/${name}.png`, fullPage: false });
+      await page.screenshot({
+        path: `artifacts/phase-9/regression-phase1-${name}.png`,
+        fullPage: false,
+      });
     }
   });
 });

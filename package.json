@@ -14,9 +14,9 @@
     "test:watch": "vitest",
     "test:component": "vitest run tests/component",
     "test:integration": "vitest run tests/integration",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test --grep-invert @visual",
     "test:e2e:list": "playwright test --list",
-    "test:visual": "playwright test tests/e2e/visual.spec.ts --project=desktop",
+    "test:visual": "playwright test --grep @visual",
     "supabase:start": "npx supabase start",
     "supabase:reset": "npx supabase db reset",
     "supabase:types": "npx supabase gen types typescript --local > src/server/supabase/database.types.ts"

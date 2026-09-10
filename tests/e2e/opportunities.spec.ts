@@ -8,8 +8,13 @@ test.describe("Phase 8 opportunity experience", () => {
     await expect(page.getByRole("dialog", { name: "Filter opportunities" })).toBeVisible();
     await page.getByLabel("Opportunity type").selectOption({ label: "Professional role" });
     await page.getByRole("button", { name: "Apply filters" }).click();
+    await expect(page).toHaveURL(/type=Professional(?:\+|%20)role/);
     await expect(page.getByRole("heading", { name: "Software Engineer" })).toBeVisible();
-    await page.getByRole("link", { name: "Software Engineer" }).click();
+    const professionalCard = page
+      .getByRole("article")
+      .filter({ has: page.getByRole("heading", { name: "Software Engineer" }) });
+    await professionalCard.getByRole("link", { name: "View details" }).click();
+    await expect(page).toHaveURL(/\/opportunities\/demo-professional$/);
     await expect(page.getByRole("heading", { name: "Why this matches" })).toBeVisible();
     await expect(page.getByText(/Employer capability only/)).toBeVisible();
     await expect(page.getByText(/Official application link unavailable/)).toBeVisible();
@@ -25,5 +30,15 @@ test.describe("Phase 8 opportunity experience", () => {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth);
     expect(overflow).toBe(true);
     await expect(page.getByRole("button", { name: "Filters" })).toBeVisible();
+  });
+  test("opens the explicit professional detail action on mobile", async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name === "desktop", "mobile-only assertion");
+    await page.goto("/opportunities?type=Professional%20role");
+    const professionalCard = page
+      .getByRole("article")
+      .filter({ has: page.getByRole("heading", { name: "Software Engineer" }) });
+    await professionalCard.getByRole("link", { name: "View details" }).click();
+    await expect(page).toHaveURL(/\/opportunities\/demo-professional$/);
+    await expect(page.getByRole("heading", { name: "Why this matches" })).toBeVisible();
   });
 });

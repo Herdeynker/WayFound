@@ -133,6 +133,297 @@ export type Database = {
         }
         Relationships: []
       }
+      application_checklist_items: {
+        Row: {
+          application_id: string
+          completed_at: string | null
+          created_at: string
+          document_type: string | null
+          document_version_id: string | null
+          due_at: string | null
+          explanation: string
+          id: string
+          opportunity_document_id: string | null
+          requirement_state: string
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          application_id: string
+          completed_at?: string | null
+          created_at?: string
+          document_type?: string | null
+          document_version_id?: string | null
+          due_at?: string | null
+          explanation?: string
+          id?: string
+          opportunity_document_id?: string | null
+          requirement_state?: string
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          application_id?: string
+          completed_at?: string | null
+          created_at?: string
+          document_type?: string | null
+          document_version_id?: string | null
+          due_at?: string | null
+          explanation?: string
+          id?: string
+          opportunity_document_id?: string | null
+          requirement_state?: string
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_checklist_items_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_checklist_items_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_checklist_items_opportunity_document_id_fkey"
+            columns: ["opportunity_document_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_document_links: {
+        Row: {
+          application_id: string
+          checklist_item_id: string | null
+          document_version_id: string
+          id: string
+          linked_at: string
+        }
+        Insert: {
+          application_id: string
+          checklist_item_id?: string | null
+          document_version_id: string
+          id?: string
+          linked_at?: string
+        }
+        Update: {
+          application_id?: string
+          checklist_item_id?: string | null
+          document_version_id?: string
+          id?: string
+          linked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_document_links_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_links_checklist_item_id_fkey"
+            columns: ["checklist_item_id"]
+            isOneToOne: false
+            referencedRelation: "application_checklist_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "application_document_links_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_notes: {
+        Row: {
+          application_id: string
+          body: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          body: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_notes_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_reminders: {
+        Row: {
+          application_id: string
+          created_at: string
+          id: string
+          message: string
+          reminder_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          id?: string
+          message: string
+          reminder_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          id?: string
+          message?: string
+          reminder_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_reminders_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      application_status_events: {
+        Row: {
+          application_id: string
+          created_at: string
+          from_status: string | null
+          id: string
+          idempotency_key: string
+          note: string
+          to_status: string
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          idempotency_key: string
+          note?: string
+          to_status: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          idempotency_key?: string
+          note?: string
+          to_status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_status_events_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      applications: {
+        Row: {
+          created_at: string
+          id: string
+          internal_deadline: string | null
+          match_evaluation_id: string | null
+          official_deadline: string | null
+          opportunity_id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          internal_deadline?: string | null
+          match_evaluation_id?: string | null
+          official_deadline?: string | null
+          opportunity_id: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          internal_deadline?: string | null
+          match_evaluation_id?: string | null
+          official_deadline?: string | null
+          opportunity_id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "applications_match_evaluation_id_fkey"
+            columns: ["match_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "match_evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "applications_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_events: {
         Row: {
           created_at: string
@@ -786,8 +1077,11 @@ export type Database = {
       }
       document_metadata: {
         Row: {
+          category: string
           created_at: string
+          current_version_id: string | null
           document_type: string
+          expires_on: string | null
           id: string
           mime_type: string | null
           original_filename: string | null
@@ -799,8 +1093,11 @@ export type Database = {
           verified_at: string | null
         }
         Insert: {
+          category?: string
           created_at?: string
+          current_version_id?: string | null
           document_type: string
+          expires_on?: string | null
           id?: string
           mime_type?: string | null
           original_filename?: string | null
@@ -812,8 +1109,11 @@ export type Database = {
           verified_at?: string | null
         }
         Update: {
+          category?: string
           created_at?: string
+          current_version_id?: string | null
           document_type?: string
+          expires_on?: string | null
           id?: string
           mime_type?: string | null
           original_filename?: string | null
@@ -824,7 +1124,65 @@ export type Database = {
           user_id?: string
           verified_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "document_metadata_current_version_fkey"
+            columns: ["current_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_versions: {
+        Row: {
+          checksum_sha256: string
+          created_at: string
+          document_id: string
+          id: string
+          idempotency_key: string
+          mime_type: string
+          original_filename: string
+          size_bytes: number
+          storage_path: string
+          user_id: string
+          version_number: number
+        }
+        Insert: {
+          checksum_sha256: string
+          created_at?: string
+          document_id: string
+          id?: string
+          idempotency_key: string
+          mime_type: string
+          original_filename: string
+          size_bytes: number
+          storage_path: string
+          user_id: string
+          version_number: number
+        }
+        Update: {
+          checksum_sha256?: string
+          created_at?: string
+          document_id?: string
+          id?: string
+          idempotency_key?: string
+          mime_type?: string
+          original_filename?: string
+          size_bytes?: number
+          storage_path?: string
+          user_id?: string
+          version_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_versions_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "document_metadata"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       education_records: {
         Row: {
@@ -3611,6 +3969,31 @@ export type Database = {
       phase5_release_source_lease: {
         Args: { owner: string; source: string }
         Returns: boolean
+      }
+      phase9_application_status_transition_allowed: {
+        Args: { from_value: string; to_value: string }
+        Returns: boolean
+      }
+      phase9_create_application_workspace: {
+        Args: { candidate_match_id: string; request_key: string }
+        Returns: string
+      }
+      phase9_document_version_is_owned: {
+        Args: { candidate_version_id: string }
+        Returns: boolean
+      }
+      phase9_owner_of_application: {
+        Args: { candidate_application_id: string }
+        Returns: boolean
+      }
+      phase9_transition_application_status: {
+        Args: {
+          candidate_application_id: string
+          optional_note: string
+          request_key: string
+          target_status: string
+        }
+        Returns: string
       }
     }
     Enums: {

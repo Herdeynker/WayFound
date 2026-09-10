@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("Phase 2 visual evidence", () => {
+test.describe("@visual Phase 2 visual evidence", () => {
   test("captures the mobile-first authentication surfaces", async ({ page }, testInfo) => {
     test.skip(
       testInfo.project.name !== "desktop",
@@ -19,12 +19,15 @@ test.describe("Phase 2 visual evidence", () => {
       await page.setViewportSize({ width, height });
       await page.goto(path);
       await expect(page.locator("body")).toBeVisible();
-      await page.screenshot({ path: `artifacts/phase-2/${name}.png`, fullPage: false });
+      await page.screenshot({
+        path: `artifacts/phase-9/regression-phase2-${name}.png`,
+        fullPage: false,
+      });
     }
     await page.getByRole("button", { name: "Request account deletion" }).click();
     await expect(page.getByRole("dialog", { name: "Request account deletion?" })).toBeVisible();
     await page.screenshot({
-      path: "artifacts/phase-2/deletion-confirmation-mobile-390x844.png",
+      path: "artifacts/phase-9/regression-phase2-deletion-confirmation-mobile-390x844.png",
       fullPage: false,
     });
   });

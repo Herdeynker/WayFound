@@ -291,8 +291,178 @@ button:disabled {
 .application-unavailable {
   border-left: 4px solid var(--color-amber-500);
   border-radius: 8px;
-  background: var(--color-amber-50);
+  background: var(--color-amber-100);
   padding: 14px 16px;
+}
+
+/* Phase 9 private preparation surfaces retain the Direction A hierarchy. */
+.application-surface {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 40px clamp(18px, 4vw, 56px) 72px;
+}
+.application-hero {
+  margin-bottom: 28px;
+}
+.application-hero h1 {
+  margin: 4px 0 10px;
+  color: var(--color-navy-800);
+  font: 800 clamp(32px, 5vw, 48px) var(--font-sora);
+}
+.application-hero p {
+  color: var(--color-slate);
+  font-size: 17px;
+  max-width: 650px;
+}
+.document-upload-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  padding: 24px;
+  margin-bottom: 28px;
+  border: 1px solid var(--color-mist);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+.document-upload-form .ui-button,
+.document-upload-form .upload-hint {
+  grid-column: 1 / -1;
+}
+.upload-hint {
+  margin: 0;
+  color: var(--color-slate);
+  font-size: 13px;
+}
+.upload-progress {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px 14px;
+  color: var(--color-navy-800);
+  font-size: 14px;
+  font-weight: 650;
+}
+.upload-progress progress {
+  width: 100%;
+  height: 10px;
+  grid-column: 1 / -1;
+  accent-color: var(--color-teal-500);
+}
+.phase9-state {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 20px;
+  margin: 0 0 22px;
+  border: 1px solid var(--color-mist);
+  border-radius: 16px;
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+.phase9-state-icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-teal-100);
+  color: var(--color-teal-600);
+  font-weight: 800;
+}
+.phase9-state h2 {
+  margin: 0;
+  color: var(--color-navy-800);
+  font: 750 20px var(--font-sora);
+}
+.phase9-state p {
+  margin: 6px 0 0;
+  color: var(--color-slate);
+  line-height: 1.55;
+}
+.phase9-state-error {
+  border-left: 4px solid #c84c47;
+}
+.phase9-state-error .phase9-state-icon {
+  background: #fff0ef;
+  color: #a23c38;
+}
+.phase9-state-warning {
+  border-left: 4px solid var(--color-amber-500);
+  background: var(--color-amber-100);
+}
+.phase9-state-success {
+  border-left: 4px solid var(--color-teal-500);
+}
+.document-list,
+.application-list {
+  display: grid;
+  gap: 14px;
+}
+.document-row,
+.application-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 20px;
+  border: 1px solid var(--color-mist);
+  border-radius: 14px;
+  background: var(--color-surface);
+}
+.document-row p,
+.application-card p,
+.workspace-action p {
+  margin: 6px 0 0;
+  color: var(--color-slate);
+}
+.application-card {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr minmax(170px, 0.7fr);
+  align-items: start;
+}
+.application-card h2 {
+  margin: 10px 0 2px;
+  color: var(--color-navy-800);
+  font: 750 22px var(--font-sora);
+}
+.application-card dl {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+}
+.application-card dt {
+  color: var(--color-slate);
+  font-size: 12px;
+}
+.application-card dd {
+  margin: 2px 0 0;
+  color: var(--color-navy-800);
+  font-weight: 650;
+}
+.application-card label {
+  display: grid;
+  gap: 7px;
+  color: var(--color-navy-800);
+  font-weight: 650;
+}
+.workspace-action {
+  display: grid;
+  gap: 8px;
+  margin-top: 20px;
+}
+@media (max-width: 767px) {
+  .application-surface {
+    padding: 28px 16px calc(var(--mobile-nav-height) + 28px);
+  }
+  .document-upload-form,
+  .application-card {
+    grid-template-columns: 1fr;
+  }
+  .document-row {
+    align-items: flex-start;
+  }
 }
 .detail-section ul {
   display: grid;

@@ -20,6 +20,7 @@ import {
   Toast,
 } from "@/components/ui";
 import { Icon } from "@/components/icons";
+import { CreateApplicationButton } from "@/features/applications/application-tracker";
 
 function deadlineLabel(item: OpportunityCardModel) {
   if (item.rollingDeadline) return "Rolling deadline";
@@ -297,9 +298,9 @@ export function OpportunityCard({
       ) : null}
       <div className="card-footer">
         <Badge tone={item.readiness === "ready" ? "teal" : "amber"}>{outcomeLabel(item.readiness)}</Badge>
-        <Link className="detail-link" href={`/opportunities/${item.id}` as never}>
+        <a className="detail-link" href={`/opportunities/${item.id}`}>
           View details <Icon name="arrow-right" size={18} />
-        </Link>
+        </a>
       </div>
     </article>
   );
@@ -400,6 +401,10 @@ export function OpportunityDetail({
             Official application link unavailable: {detail.application.reason}
           </p>
         )}
+        <div className="workspace-action">
+          <CreateApplicationButton matchId={card.matchId} />
+          <p>Creates a private preparation workspace only. WAYFOUND never submits an application for you.</p>
+        </div>
       </DetailSection>
     </article>
   );
