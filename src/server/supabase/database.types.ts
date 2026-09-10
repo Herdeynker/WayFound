@@ -424,6 +424,407 @@ export type Database = {
           },
         ]
       }
+      assistant_draft_revisions: {
+        Row: {
+          content: string
+          created_at: string
+          draft_id: string
+          generation_request_id: string
+          grounding_status: string
+          id: string
+          input_fingerprint: string
+          model_version: string
+          provider_name: string
+          revision_number: number
+          schema_version: string
+          user_id: string
+          validation_result: Json
+          word_count: number
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          draft_id: string
+          generation_request_id: string
+          grounding_status: string
+          id?: string
+          input_fingerprint: string
+          model_version: string
+          provider_name: string
+          revision_number: number
+          schema_version?: string
+          user_id: string
+          validation_result?: Json
+          word_count: number
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          draft_id?: string
+          generation_request_id?: string
+          grounding_status?: string
+          id?: string
+          input_fingerprint?: string
+          model_version?: string
+          provider_name?: string
+          revision_number?: number
+          schema_version?: string
+          user_id?: string
+          validation_result?: Json
+          word_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_draft_revisions_draft_id_fkey"
+            columns: ["draft_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_drafts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_draft_revisions_generation_request_id_fkey"
+            columns: ["generation_request_id"]
+            isOneToOne: true
+            referencedRelation: "assistant_generation_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_drafts: {
+        Row: {
+          application_id: string
+          approved_revision_id: string | null
+          created_at: string
+          current_revision_id: string | null
+          fact_set_id: string
+          id: string
+          idempotency_key: string
+          kind: string
+          opportunity_id: string
+          status: string
+          title: string
+          tone: string
+          updated_at: string
+          user_id: string
+          word_limit: number
+        }
+        Insert: {
+          application_id: string
+          approved_revision_id?: string | null
+          created_at?: string
+          current_revision_id?: string | null
+          fact_set_id: string
+          id?: string
+          idempotency_key: string
+          kind: string
+          opportunity_id: string
+          status?: string
+          title: string
+          tone: string
+          updated_at?: string
+          user_id: string
+          word_limit: number
+        }
+        Update: {
+          application_id?: string
+          approved_revision_id?: string | null
+          created_at?: string
+          current_revision_id?: string | null
+          fact_set_id?: string
+          id?: string
+          idempotency_key?: string
+          kind?: string
+          opportunity_id?: string
+          status?: string
+          title?: string
+          tone?: string
+          updated_at?: string
+          user_id?: string
+          word_limit?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_drafts_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_drafts_approved_revision_fkey"
+            columns: ["approved_revision_id", "id"]
+            isOneToOne: false
+            referencedRelation: "assistant_draft_revisions"
+            referencedColumns: ["id", "draft_id"]
+          },
+          {
+            foreignKeyName: "assistant_drafts_current_revision_fkey"
+            columns: ["current_revision_id", "id"]
+            isOneToOne: false
+            referencedRelation: "assistant_draft_revisions"
+            referencedColumns: ["id", "draft_id"]
+          },
+          {
+            foreignKeyName: "assistant_drafts_fact_set_id_fkey"
+            columns: ["fact_set_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_fact_sets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_drafts_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_drafts_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_exports: {
+        Row: {
+          checksum_sha256: string
+          created_at: string
+          draft_id: string
+          export_format: string
+          id: string
+          revision_id: string
+          user_id: string
+        }
+        Insert: {
+          checksum_sha256: string
+          created_at?: string
+          draft_id: string
+          export_format: string
+          id?: string
+          revision_id: string
+          user_id: string
+        }
+        Update: {
+          checksum_sha256?: string
+          created_at?: string
+          draft_id?: string
+          export_format?: string
+          id?: string
+          revision_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_exports_draft_id_fkey"
+            columns: ["draft_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_drafts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_exports_revision_id_fkey"
+            columns: ["revision_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_draft_revisions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_fact_sets: {
+        Row: {
+          application_id: string
+          approved_at: string | null
+          created_at: string
+          id: string
+          opportunity_id: string
+          schema_version: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          approved_at?: string | null
+          created_at?: string
+          id?: string
+          opportunity_id: string
+          schema_version?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          approved_at?: string | null
+          created_at?: string
+          id?: string
+          opportunity_id?: string
+          schema_version?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_fact_sets_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_fact_sets_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assistant_fact_sets_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_generation_requests: {
+        Row: {
+          attempt_count: number
+          completed_at: string | null
+          created_at: string
+          draft_id: string
+          id: string
+          idempotency_key: string
+          safe_error_code: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          draft_id: string
+          id?: string
+          idempotency_key: string
+          safe_error_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_count?: number
+          completed_at?: string | null
+          created_at?: string
+          draft_id?: string
+          id?: string
+          idempotency_key?: string
+          safe_error_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_generation_requests_draft_id_fkey"
+            columns: ["draft_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_drafts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_source_facts: {
+        Row: {
+          approved_at: string
+          category: string
+          created_at: string
+          evidence_label: string
+          evidence_url: string | null
+          fact_set_id: string
+          fact_value: string
+          id: string
+          label: string
+          user_id: string
+        }
+        Insert: {
+          approved_at: string
+          category: string
+          created_at?: string
+          evidence_label: string
+          evidence_url?: string | null
+          fact_set_id: string
+          fact_value: string
+          id: string
+          label: string
+          user_id: string
+        }
+        Update: {
+          approved_at?: string
+          category?: string
+          created_at?: string
+          evidence_label?: string
+          evidence_url?: string | null
+          fact_set_id?: string
+          fact_value?: string
+          id?: string
+          label?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_source_facts_fact_set_id_fkey"
+            columns: ["fact_set_id"]
+            isOneToOne: false
+            referencedRelation: "assistant_fact_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assistant_usage_ledger: {
+        Row: {
+          created_at: string
+          estimated_cost_microunits: number
+          generation_request_id: string
+          id: string
+          model_version: string
+          provider_name: string
+          units: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_cost_microunits?: number
+          generation_request_id: string
+          id?: string
+          model_version: string
+          provider_name: string
+          units?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          estimated_cost_microunits?: number
+          generation_request_id?: string
+          id?: string
+          model_version?: string
+          provider_name?: string
+          units?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assistant_usage_ledger_generation_request_id_fkey"
+            columns: ["generation_request_id"]
+            isOneToOne: true
+            referencedRelation: "assistant_generation_requests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       audit_events: {
         Row: {
           created_at: string
@@ -1000,6 +1401,124 @@ export type Database = {
             columns: ["replaces_rule_id"]
             isOneToOne: false
             referencedRelation: "country_rules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cv_analyses: {
+        Row: {
+          alignment_score: number | null
+          application_id: string
+          completed_at: string | null
+          created_at: string
+          document_id: string | null
+          document_version_id: string | null
+          id: string
+          input_fingerprint: string
+          profile_version_id: string | null
+          safe_error_code: string | null
+          schema_version: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          alignment_score?: number | null
+          application_id: string
+          completed_at?: string | null
+          created_at?: string
+          document_id?: string | null
+          document_version_id?: string | null
+          id?: string
+          input_fingerprint: string
+          profile_version_id?: string | null
+          safe_error_code?: string | null
+          schema_version?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          alignment_score?: number | null
+          application_id?: string
+          completed_at?: string | null
+          created_at?: string
+          document_id?: string | null
+          document_version_id?: string | null
+          id?: string
+          input_fingerprint?: string
+          profile_version_id?: string | null
+          safe_error_code?: string | null
+          schema_version?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cv_analyses_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cv_analyses_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "document_metadata"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cv_analyses_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cv_analyses_profile_version_id_fkey"
+            columns: ["profile_version_id"]
+            isOneToOne: false
+            referencedRelation: "profile_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cv_analysis_findings: {
+        Row: {
+          analysis_id: string
+          created_at: string
+          finding_kind: string
+          id: string
+          section_name: string
+          sort_order: number
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          analysis_id: string
+          created_at?: string
+          finding_kind: string
+          id?: string
+          section_name: string
+          sort_order?: number
+          summary: string
+          user_id: string
+        }
+        Update: {
+          analysis_id?: string
+          created_at?: string
+          finding_kind?: string
+          id?: string
+          section_name?: string
+          sort_order?: number
+          summary?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cv_analysis_findings_analysis_id_fkey"
+            columns: ["analysis_id"]
+            isOneToOne: false
+            referencedRelation: "cv_analyses"
             referencedColumns: ["id"]
           },
         ]
@@ -3953,6 +4472,18 @@ export type Database = {
       cancel_account_deletion_request: {
         Args: { request_id: string }
         Returns: boolean
+      }
+      phase10_application_owned: {
+        Args: { candidate_application_id: string; candidate_user_id: string }
+        Returns: boolean
+      }
+      phase10_approve_revision: {
+        Args: { candidate_draft_id: string; candidate_revision_id: string }
+        Returns: boolean
+      }
+      phase10_reserve_generation: {
+        Args: { candidate_draft_id: string; request_key: string }
+        Returns: string
       }
       phase4_valid_condition: { Args: { value: Json }; Returns: boolean }
       phase4_valid_normalized_value: { Args: { value: Json }; Returns: boolean }

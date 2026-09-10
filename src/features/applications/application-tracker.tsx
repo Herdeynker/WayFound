@@ -519,7 +519,12 @@ export function ApplicationWorkspace({ initial }: { initial: ApplicationWorkspac
         <p className="eyebrow">APPLICATION WORKSPACE</p>
         <h1 id="workspace-title">{data.application.title}</h1>
         <p>This private workspace helps you prepare. It never submits an application for you.</p>
-        <Link href="/applications">Back to applications</Link>
+        <div className="application-hero-actions">
+          <Link href="/applications">Back to applications</Link>
+          <Link className="ui-button ui-button-teal" href={"/prepare/assistant" as Route}>
+            Open CV &amp; writing assistant
+          </Link>
+        </div>
       </header>
       {error ? (
         <p className="field-error" role="alert">

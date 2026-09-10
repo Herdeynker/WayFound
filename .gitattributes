@@ -1,0 +1,6 @@
+# These hosted Phase 10 migrations were applied before the trailing-blank check.
+# Preserve their exact bytes; applied migrations are immutable.
+supabase/migrations/20260908080000_phase10_cv_application_assistant.sql whitespace=-blank-at-eof
+supabase/migrations/20260908080001_phase10_owner_chain_hardening.sql whitespace=-blank-at-eof
+supabase/migrations/20260908080002_phase10_account_cleanup_constraints.sql whitespace=-blank-at-eof
+supabase/migrations/20260908080003_phase10_trigger_record_safety.sql whitespace=-blank-at-eof
