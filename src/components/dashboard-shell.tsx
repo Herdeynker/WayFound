@@ -122,7 +122,13 @@ function DesktopTopBar() {
     <header className="desktop-topbar">
       <SearchInput placeholder="Search opportunities, skills or countries…" />
       <div className="topbar-user">
-        <IconButton className="notification-button" icon="bell" label="Notifications" />
+        <a
+          className="icon-button notification-button"
+          href="/settings/notifications"
+          aria-label="Notifications"
+        >
+          <Icon name="bell" size={22} />
+        </a>
         <span className="notification-dot" aria-label="1 unread notification" role="status" />
         <span className="topbar-divider" aria-hidden="true" />
         <Avatar label="Amara" size="medium" />
@@ -144,7 +150,9 @@ function MobileHeader() {
       <WayfoundLogo variant="dark" />
       <div className="mobile-header-actions">
         <div className="notification-wrap">
-          <IconButton icon="bell" label="Notifications" />
+          <a className="icon-button" href="/settings/notifications" aria-label="Notifications">
+            <Icon name="bell" size={22} />
+          </a>
           <span className="notification-dot" aria-label="1 unread notification" role="status" />
         </div>
         <Avatar label="Amara" size="medium" />

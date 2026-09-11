@@ -31,13 +31,13 @@ export async function hasCurrentConsent(
 ): Promise<boolean> {
   const { data, error } = await client
     .from("user_consents")
-    .select("granted")
+    .select("granted, recorded_at")
     .eq("user_id", userId)
     .eq("policy_version", getPolicyVersion())
     .eq("consent_type", consentType)
-    .eq("granted", true)
+    .order("recorded_at", { ascending: false })
     .limit(1);
-  return !error && Boolean(data?.length);
+  return !error && data?.[0]?.granted === true;
 }
 
 export async function bootstrapAccount(client: AuthClient, user: User): Promise<void> {

@@ -4,3 +4,5 @@ supabase/migrations/20260908080000_phase10_cv_application_assistant.sql whitespa
 supabase/migrations/20260908080001_phase10_owner_chain_hardening.sql whitespace=-blank-at-eof
 supabase/migrations/20260908080002_phase10_account_cleanup_constraints.sql whitespace=-blank-at-eof
 supabase/migrations/20260908080003_phase10_trigger_record_safety.sql whitespace=-blank-at-eof
+# This corrective migration was applied before the trailing-blank check.
+supabase/migrations/20260908090001_phase11_service_rpc_privileges.sql whitespace=-blank-at-eof

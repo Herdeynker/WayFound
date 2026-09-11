@@ -30,7 +30,7 @@ describe("Phase 1 dashboard shell", () => {
     render(<DashboardShell />);
 
     expect(screen.getAllByRole("link", { name: "Home" })[0]).toHaveAttribute("aria-current", "page");
-    expect(screen.getAllByRole("button", { name: "Notifications" })).toHaveLength(2);
+    expect(screen.getAllByRole("link", { name: "Notifications" })).toHaveLength(2);
     expect(screen.getAllByRole("button", { name: /Save/ })).toHaveLength(3);
     expect(screen.getByRole("navigation", { name: "Primary navigation" })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Mobile navigation" })).toBeInTheDocument();

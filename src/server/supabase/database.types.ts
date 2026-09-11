@@ -2778,23 +2778,216 @@ export type Database = {
           },
         ]
       }
+      notification_deliveries: {
+        Row: {
+          attempt_count: number
+          available_at: string
+          channel: string
+          created_at: string
+          delivered_at: string | null
+          event_id: string
+          failure_code: string | null
+          id: string
+          lease_expires_at: string | null
+          lease_token: string | null
+          provider_message_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          available_at: string
+          channel: string
+          created_at?: string
+          delivered_at?: string | null
+          event_id: string
+          failure_code?: string | null
+          id?: string
+          lease_expires_at?: string | null
+          lease_token?: string | null
+          provider_message_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_count?: number
+          available_at?: string
+          channel?: string
+          created_at?: string
+          delivered_at?: string | null
+          event_id?: string
+          failure_code?: string | null
+          id?: string
+          lease_expires_at?: string | null
+          lease_token?: string | null
+          provider_message_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_deliveries_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "notification_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_delivery_attempts: {
+        Row: {
+          attempt_number: number
+          created_at: string
+          delivery_id: string
+          failure_code: string | null
+          id: string
+          outcome: string
+          provider_request_id: string | null
+          user_id: string
+        }
+        Insert: {
+          attempt_number: number
+          created_at?: string
+          delivery_id: string
+          failure_code?: string | null
+          id?: string
+          outcome: string
+          provider_request_id?: string | null
+          user_id: string
+        }
+        Update: {
+          attempt_number?: number
+          created_at?: string
+          delivery_id?: string
+          failure_code?: string | null
+          id?: string
+          outcome?: string
+          provider_request_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_delivery_attempts_delivery_id_fkey"
+            columns: ["delivery_id"]
+            isOneToOne: false
+            referencedRelation: "notification_deliveries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notification_events: {
+        Row: {
+          created_at: string
+          deduplication_key: string
+          deep_link: string
+          event_type: string
+          id: string
+          occurred_at: string
+          resource_id: string
+          resource_kind: string
+          safe_context: Json
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deduplication_key: string
+          deep_link: string
+          event_type: string
+          id?: string
+          occurred_at: string
+          resource_id: string
+          resource_kind: string
+          safe_context?: Json
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deduplication_key?: string
+          deep_link?: string
+          event_type?: string
+          id?: string
+          occurred_at?: string
+          resource_id?: string
+          resource_kind?: string
+          safe_context?: Json
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       notification_preferences: {
         Row: {
           email_enabled: boolean
+          email_frequency: string
+          event_types: string[]
+          quiet_hours_enabled: boolean
+          quiet_hours_end: string
+          quiet_hours_start: string
           telegram_enabled: boolean
+          telegram_frequency: string
+          timezone_name: string
           updated_at: string
           user_id: string
         }
         Insert: {
           email_enabled?: boolean
+          email_frequency?: string
+          event_types?: string[]
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string
+          quiet_hours_start?: string
           telegram_enabled?: boolean
+          telegram_frequency?: string
+          timezone_name?: string
           updated_at?: string
           user_id: string
         }
         Update: {
           email_enabled?: boolean
+          email_frequency?: string
+          event_types?: string[]
+          quiet_hours_enabled?: boolean
+          quiet_hours_end?: string
+          quiet_hours_start?: string
           telegram_enabled?: boolean
+          telegram_frequency?: string
+          timezone_name?: string
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_suppressions: {
+        Row: {
+          active: boolean
+          channel: string
+          created_at: string
+          id: string
+          reason: string
+          released_at: string | null
+          user_id: string
+        }
+        Insert: {
+          active?: boolean
+          channel: string
+          created_at?: string
+          id?: string
+          reason: string
+          released_at?: string | null
+          user_id: string
+        }
+        Update: {
+          active?: boolean
+          channel?: string
+          created_at?: string
+          id?: string
+          reason?: string
+          released_at?: string | null
           user_id?: string
         }
         Relationships: []
@@ -4249,6 +4442,72 @@ export type Database = {
         }
         Relationships: []
       }
+      telegram_link_tokens: {
+        Row: {
+          attempt_count: number
+          consumed_at: string | null
+          created_at: string
+          expires_at: string
+          id: string
+          revoked_at: string | null
+          token_hash: string
+          user_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          consumed_at?: string | null
+          created_at?: string
+          expires_at: string
+          id?: string
+          revoked_at?: string | null
+          token_hash: string
+          user_id: string
+        }
+        Update: {
+          attempt_count?: number
+          consumed_at?: string | null
+          created_at?: string
+          expires_at?: string
+          id?: string
+          revoked_at?: string | null
+          token_hash?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      telegram_links: {
+        Row: {
+          chat_id: string
+          display_label: string | null
+          id: string
+          linked_at: string
+          revoked_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          chat_id: string
+          display_label?: string | null
+          id?: string
+          linked_at?: string
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          chat_id?: string
+          display_label?: string | null
+          id?: string
+          linked_at?: string
+          revoked_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       trade_experience: {
         Row: {
           apprenticeship_status: string
@@ -4484,6 +4743,46 @@ export type Database = {
       phase10_reserve_generation: {
         Args: { candidate_draft_id: string; request_key: string }
         Returns: string
+      }
+      phase11_claim_notification_deliveries: {
+        Args: {
+          batch_limit?: number
+          lease_seconds?: number
+          worker_token: string
+        }
+        Returns: string[]
+      }
+      phase11_consume_telegram_link_token: {
+        Args: {
+          candidate_chat_id: string
+          candidate_display_label?: string
+          token_digest: string
+        }
+        Returns: string
+      }
+      phase11_create_telegram_link_token: {
+        Args: { token_digest: string }
+        Returns: string
+      }
+      phase11_save_notification_preferences: {
+        Args: {
+          candidate_email_frequency: string
+          candidate_event_types: string[]
+          candidate_policy_version: string
+          candidate_quiet_hours_enabled: boolean
+          candidate_quiet_hours_end: string
+          candidate_quiet_hours_start: string
+          candidate_telegram_frequency: string
+          candidate_timezone_name: string
+          email_consent: boolean
+          telegram_consent: boolean
+        }
+        Returns: boolean
+      }
+      phase11_unlink_telegram: { Args: never; Returns: boolean }
+      phase11_unsubscribe_email: {
+        Args: { candidate_policy_version: string }
+        Returns: boolean
       }
       phase4_valid_condition: { Args: { value: Json }; Returns: boolean }
       phase4_valid_normalized_value: { Args: { value: Json }; Returns: boolean }

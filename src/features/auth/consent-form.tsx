@@ -8,7 +8,11 @@ const choices = [
   ["ai_processing", "Allow assisted processing to organize and explain my information.", true],
   ["document_storage", "Store documents I choose to upload in my private account.", true],
   ["email_notifications", "Send me helpful opportunity and deadline alerts by email.", false],
-  ["telegram_notifications", "Telegram alerts (available after a later account-linking update).", false],
+  [
+    "telegram_notifications",
+    "Send selected opportunity and deadline alerts through a linked Telegram account.",
+    false,
+  ],
 ] as const;
 
 export function ConsentForm() {
@@ -42,7 +46,6 @@ export function ConsentForm() {
           <Checkbox
             key={key}
             checked={values[key]}
-            disabled={key === "telegram_notifications"}
             label={`${label}${required ? " (required)" : ""}`}
             onChange={(event) => setValues((current) => ({ ...current, [key]: event.target.checked }))}
           />

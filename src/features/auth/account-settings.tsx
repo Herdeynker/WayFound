@@ -1,25 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, Checkbox } from "@/components/ui";
+import { Button, Card } from "@/components/ui";
 
 type Props = {
   email: string;
-  preferences: { email_enabled: boolean; telegram_enabled: boolean };
   exportRequested: boolean;
   deletionRequested: boolean;
   deletionRequestId?: string;
 };
 
-export function AccountSettings({
-  email,
-  preferences,
-  exportRequested,
-  deletionRequested,
-  deletionRequestId,
-}: Props) {
-  const [emailEnabled, setEmailEnabled] = useState(preferences.email_enabled);
-  const [telegramEnabled, setTelegramEnabled] = useState(preferences.telegram_enabled);
+export function AccountSettings({ email, exportRequested, deletionRequested, deletionRequestId }: Props) {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
@@ -50,10 +41,14 @@ export function AccountSettings({
           <a className="ui-button ui-button-secondary" href="/forgot-password">
             Change password <span aria-hidden="true">→</span>
           </a>
-          <Button variant="quiet" onClick={() => action("/api/auth/logout")}>
+          <Button disabled={pending} variant="quiet" onClick={() => action("/api/auth/logout")}>
             Sign out this device
           </Button>
-          <Button variant="quiet" onClick={() => action("/api/auth/logout", { all: true })}>
+          <Button
+            disabled={pending}
+            variant="quiet"
+            onClick={() => action("/api/auth/logout", { all: true })}
+          >
             Sign out everywhere
           </Button>
         </div>
@@ -61,31 +56,12 @@ export function AccountSettings({
       <Card>
         <p className="card-eyebrow">Notifications</p>
         <h2>Choose what reaches you</h2>
-        <form
-          className="settings-form"
-          onSubmit={(event) => {
-            event.preventDefault();
-            action("/api/settings/notifications", {
-              email_enabled: emailEnabled,
-              telegram_enabled: telegramEnabled,
-            });
-          }}
-        >
-          <Checkbox
-            checked={emailEnabled}
-            label="Email opportunity and deadline alerts"
-            onChange={(event) => setEmailEnabled(event.target.checked)}
-          />
-          <Checkbox
-            checked={telegramEnabled}
-            disabled
-            label="Telegram alerts (after I link an account)"
-            onChange={(event) => setTelegramEnabled(event.target.checked)}
-          />
-          <Button loading={pending} type="submit">
-            Save preferences
-          </Button>
-        </form>
+        <p className="settings-muted">
+          Set frequencies, quiet hours, event types and securely link Telegram in the alert preference centre.
+        </p>
+        <a className="ui-button ui-button-secondary" href="/settings/notifications">
+          Open alert preferences <span aria-hidden="true">→</span>
+        </a>
       </Card>
       <Card>
         <p className="card-eyebrow">Your data</p>
@@ -95,14 +71,19 @@ export function AccountSettings({
           this environment.
         </p>
         <div className="settings-actions">
-          <Button disabled={exportRequested} onClick={() => action("/api/account/export")}>
+          <Button disabled={pending || exportRequested} onClick={() => action("/api/account/export")}>
             {exportRequested ? "Export request pending" : "Request a data export"}
           </Button>
-          <Button variant="secondary" disabled={deletionRequested} onClick={() => setConfirmDelete(true)}>
+          <Button
+            variant="secondary"
+            disabled={pending || deletionRequested}
+            onClick={() => setConfirmDelete(true)}
+          >
             {deletionRequested ? "Deletion request pending" : "Request account deletion"}
           </Button>
           {deletionRequested && deletionRequestId ? (
             <Button
+              disabled={pending}
               variant="quiet"
               onClick={() => action("/api/account/delete/cancel", { requestId: deletionRequestId })}
             >
@@ -139,10 +120,11 @@ export function AccountSettings({
               request is pending.
             </p>
             <div className="account-confirm-actions">
-              <Button variant="quiet" onClick={() => setConfirmDelete(false)}>
+              <Button disabled={pending} variant="quiet" onClick={() => setConfirmDelete(false)}>
                 Keep my account
               </Button>
               <Button
+                disabled={pending}
                 variant="secondary"
                 onClick={() => {
                   setConfirmDelete(false);
