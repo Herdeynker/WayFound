@@ -24,7 +24,7 @@ const mobileNavigation: NavigationItem[] = [
   { label: "Home", icon: "home", href: "#home" },
   { label: "Explore", icon: "search", href: "#explore" },
   { label: "Applications", icon: "file", href: "#applications" },
-  { label: "Prepare", icon: "readiness", href: "#prepare" },
+  { label: "Prepare", icon: "readiness", href: "/prepare/ielts" },
   { label: "Profile", icon: "profile", href: "#profile" },
 ];
 
@@ -304,6 +304,7 @@ function UtilityRail() {
         value={dashboardFixture.ielts.score}
         description={dashboardFixture.ielts.description}
         bars
+        href="/prepare/ielts"
       />
     </aside>
   );
@@ -315,12 +316,14 @@ function UtilitySummaryCard({
   value,
   description,
   bars = false,
+  href,
 }: {
   icon: IconName;
   title: string;
   value: string;
   description: string;
   bars?: boolean;
+  href?: string;
 }) {
   return (
     <section className="utility-card">
@@ -341,7 +344,13 @@ function UtilitySummaryCard({
           <i />
         </div>
       ) : null}
-      <IconButton className="utility-arrow" icon="chevron-right" label={`Open ${title}`} />
+      {href ? (
+        <a aria-label={`Open ${title}`} className="icon-button utility-arrow" href={href}>
+          <Icon name="chevron-right" size={20} />
+        </a>
+      ) : (
+        <IconButton className="utility-arrow" icon="chevron-right" label={`Open ${title}`} />
+      )}
     </section>
   );
 }
@@ -429,8 +438,10 @@ function MobileBottomNav({ activeNav, onSelect }: { activeNav: string; onSelect:
           href={item.href}
           key={item.label}
           onClick={(event) => {
-            event.preventDefault();
-            onSelect(item.label);
+            if (item.href.startsWith("#")) {
+              event.preventDefault();
+              onSelect(item.label);
+            }
           }}
         >
           <Icon name={item.icon} size={27} />

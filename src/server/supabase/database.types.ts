@@ -2614,6 +2614,427 @@ export type Database = {
         }
         Relationships: []
       }
+      ielts_attempt_responses: {
+        Row: {
+          attempt_id: string
+          awarded_score: number
+          created_at: string
+          id: string
+          is_correct: boolean | null
+          maximum_score: number
+          question_key: string
+          response_text: string
+          user_id: string
+        }
+        Insert: {
+          attempt_id: string
+          awarded_score?: number
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          maximum_score?: number
+          question_key: string
+          response_text: string
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string
+          awarded_score?: number
+          created_at?: string
+          id?: string
+          is_correct?: boolean | null
+          maximum_score?: number
+          question_key?: string
+          response_text?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ielts_attempt_responses_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "ielts_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ielts_attempts: {
+        Row: {
+          attempt_kind: string
+          completed_at: string | null
+          content_item_id: string
+          content_version: number
+          duration_seconds: number
+          elapsed_seconds: number
+          estimated_band: number | null
+          id: string
+          idempotency_key: string
+          is_unofficial_estimate: boolean
+          score_max: number | null
+          score_raw: number | null
+          skill: string
+          started_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_kind: string
+          completed_at?: string | null
+          content_item_id: string
+          content_version: number
+          duration_seconds: number
+          elapsed_seconds?: number
+          estimated_band?: number | null
+          id?: string
+          idempotency_key: string
+          is_unofficial_estimate?: boolean
+          score_max?: number | null
+          score_raw?: number | null
+          skill: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_kind?: string
+          completed_at?: string | null
+          content_item_id?: string
+          content_version?: number
+          duration_seconds?: number
+          elapsed_seconds?: number
+          estimated_band?: number | null
+          id?: string
+          idempotency_key?: string
+          is_unofficial_estimate?: boolean
+          score_max?: number | null
+          score_raw?: number | null
+          skill?: string
+          started_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ielts_attempts_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "ielts_content_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ielts_attempts_content_item_id_fkey"
+            columns: ["content_item_id"]
+            isOneToOne: false
+            referencedRelation: "safe_active_ielts_content"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ielts_content_items: {
+        Row: {
+          activated_at: string | null
+          activity_kind: string
+          answer_key: Json
+          content: Json
+          content_version: number
+          created_at: string
+          duration_seconds: number
+          id: string
+          instructions: string
+          licence_reference: string | null
+          licence_status: string
+          provenance_author: string
+          provenance_title: string
+          provenance_type: string
+          provenance_url: string | null
+          rubric: Json
+          skill: string
+          slug: string
+          status: string
+          test_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          activated_at?: string | null
+          activity_kind: string
+          answer_key?: Json
+          content: Json
+          content_version?: number
+          created_at?: string
+          duration_seconds: number
+          id?: string
+          instructions: string
+          licence_reference?: string | null
+          licence_status: string
+          provenance_author: string
+          provenance_title: string
+          provenance_type: string
+          provenance_url?: string | null
+          rubric?: Json
+          skill: string
+          slug: string
+          status?: string
+          test_type: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          activated_at?: string | null
+          activity_kind?: string
+          answer_key?: Json
+          content?: Json
+          content_version?: number
+          created_at?: string
+          duration_seconds?: number
+          id?: string
+          instructions?: string
+          licence_reference?: string | null
+          licence_status?: string
+          provenance_author?: string
+          provenance_title?: string
+          provenance_type?: string
+          provenance_url?: string | null
+          rubric?: Json
+          skill?: string
+          slug?: string
+          status?: string
+          test_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ielts_feedback: {
+        Row: {
+          attempt_id: string
+          created_at: string
+          dimensions: Json
+          estimated_band: number
+          id: string
+          input_fingerprint: string
+          is_unofficial_estimate: boolean
+          model_version: string
+          provider_name: string
+          recommendations: string[]
+          schema_version: string
+          skill: string
+          strengths: string[]
+          summary: string
+          user_id: string
+        }
+        Insert: {
+          attempt_id: string
+          created_at?: string
+          dimensions: Json
+          estimated_band: number
+          id?: string
+          input_fingerprint: string
+          is_unofficial_estimate?: boolean
+          model_version: string
+          provider_name: string
+          recommendations?: string[]
+          schema_version: string
+          skill: string
+          strengths?: string[]
+          summary: string
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string
+          created_at?: string
+          dimensions?: Json
+          estimated_band?: number
+          id?: string
+          input_fingerprint?: string
+          is_unofficial_estimate?: boolean
+          model_version?: string
+          provider_name?: string
+          recommendations?: string[]
+          schema_version?: string
+          skill?: string
+          strengths?: string[]
+          summary?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ielts_feedback_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: true
+            referencedRelation: "ielts_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ielts_official_resources: {
+        Row: {
+          checked_at: string
+          created_at: string
+          display_order: number
+          id: string
+          publisher: string
+          resource_url: string
+          status: string
+          test_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          checked_at: string
+          created_at?: string
+          display_order: number
+          id?: string
+          publisher: string
+          resource_url: string
+          status?: string
+          test_type?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          checked_at?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          publisher?: string
+          resource_url?: string
+          status?: string
+          test_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ielts_profiles: {
+        Row: {
+          created_at: string
+          recording_retention_days: number
+          target_band: number
+          test_date: string | null
+          test_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          recording_retention_days?: number
+          target_band: number
+          test_date?: string | null
+          test_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          recording_retention_days?: number
+          target_band?: number
+          test_date?: string | null
+          test_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ielts_speaking_recordings: {
+        Row: {
+          attempt_id: string
+          created_at: string
+          document_id: string
+          document_version_id: string
+          id: string
+          retention_expires_at: string
+          status: string
+          transcript: string
+          user_id: string
+        }
+        Insert: {
+          attempt_id: string
+          created_at?: string
+          document_id: string
+          document_version_id: string
+          id?: string
+          retention_expires_at: string
+          status?: string
+          transcript: string
+          user_id: string
+        }
+        Update: {
+          attempt_id?: string
+          created_at?: string
+          document_id?: string
+          document_version_id?: string
+          id?: string
+          retention_expires_at?: string
+          status?: string
+          transcript?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ielts_speaking_recordings_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: true
+            referencedRelation: "ielts_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ielts_speaking_recordings_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "document_metadata"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ielts_speaking_recordings_document_version_id_fkey"
+            columns: ["document_version_id"]
+            isOneToOne: false
+            referencedRelation: "document_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ielts_study_plans: {
+        Row: {
+          created_at: string
+          id: string
+          plan_version: string
+          recommendation: Json
+          source_attempt_id: string
+          user_id: string
+          weak_areas: string[]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          plan_version?: string
+          recommendation: Json
+          source_attempt_id: string
+          user_id: string
+          weak_areas: string[]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          plan_version?: string
+          recommendation?: Json
+          source_attempt_id?: string
+          user_id?: string
+          weak_areas?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ielts_study_plans_source_attempt_id_fkey"
+            columns: ["source_attempt_id"]
+            isOneToOne: true
+            referencedRelation: "ielts_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       industries: {
         Row: {
           code: string
@@ -5435,6 +5856,93 @@ export type Database = {
       }
     }
     Views: {
+      safe_active_ielts_content: {
+        Row: {
+          activity_kind: string | null
+          content: Json | null
+          content_version: number | null
+          duration_seconds: number | null
+          id: string | null
+          instructions: string | null
+          licence_status: string | null
+          provenance_author: string | null
+          provenance_title: string | null
+          provenance_type: string | null
+          provenance_url: string | null
+          rubric: Json | null
+          skill: string | null
+          slug: string | null
+          test_type: string | null
+          title: string | null
+        }
+        Insert: {
+          activity_kind?: string | null
+          content?: Json | null
+          content_version?: number | null
+          duration_seconds?: number | null
+          id?: string | null
+          instructions?: string | null
+          licence_status?: string | null
+          provenance_author?: string | null
+          provenance_title?: string | null
+          provenance_type?: string | null
+          provenance_url?: string | null
+          rubric?: Json | null
+          skill?: string | null
+          slug?: string | null
+          test_type?: string | null
+          title?: string | null
+        }
+        Update: {
+          activity_kind?: string | null
+          content?: Json | null
+          content_version?: number | null
+          duration_seconds?: number | null
+          id?: string | null
+          instructions?: string | null
+          licence_status?: string | null
+          provenance_author?: string | null
+          provenance_title?: string | null
+          provenance_type?: string | null
+          provenance_url?: string | null
+          rubric?: Json | null
+          skill?: string | null
+          slug?: string | null
+          test_type?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
+      safe_active_ielts_resources: {
+        Row: {
+          checked_at: string | null
+          display_order: number | null
+          id: string | null
+          publisher: string | null
+          resource_url: string | null
+          test_type: string | null
+          title: string | null
+        }
+        Insert: {
+          checked_at?: string | null
+          display_order?: number | null
+          id?: string | null
+          publisher?: string | null
+          resource_url?: string | null
+          test_type?: string | null
+          title?: string | null
+        }
+        Update: {
+          checked_at?: string | null
+          display_order?: number | null
+          id?: string | null
+          publisher?: string | null
+          resource_url?: string | null
+          test_type?: string | null
+          title?: string | null
+        }
+        Relationships: []
+      }
       safe_active_opportunities: {
         Row: {
           application_deadline: string | null
@@ -5582,6 +6090,29 @@ export type Database = {
           candidate_user_id: string
         }
         Returns: string
+      }
+      phase13_set_attempt_interrupted: {
+        Args: {
+          candidate_attempt_id: string
+          candidate_elapsed_seconds: number
+        }
+        Returns: boolean
+      }
+      phase13_start_attempt: {
+        Args: {
+          candidate_attempt_kind: string
+          candidate_content_id: string
+          candidate_idempotency_key: string
+        }
+        Returns: string
+      }
+      phase13_submit_reading: {
+        Args: {
+          candidate_answers: Json
+          candidate_attempt_id: string
+          candidate_elapsed_seconds: number
+        }
+        Returns: Json
       }
       phase4_valid_condition: { Args: { value: Json }; Returns: boolean }
       phase4_valid_normalized_value: { Args: { value: Json }; Returns: boolean }
