@@ -6,7 +6,6 @@ import type {
   DiscoveryProvider,
   DiscoveryResult,
   EmailProvider,
-  PaymentProvider,
   ProviderName,
   ProviderReceipt,
   TelegramProvider,
@@ -34,13 +33,6 @@ export function createDisabledEmailProvider(): EmailProvider {
 export function createDisabledTelegramProvider(): TelegramProvider {
   return {
     sendMessage: async (): Promise<ProviderReceipt> => disabled("telegram", "sendMessage"),
-  };
-}
-
-export function createDisabledPaymentProvider(): PaymentProvider {
-  return {
-    createCheckout: async (): Promise<ProviderReceipt> => disabled("payment", "createCheckout"),
-    verifyWebhook: async (): Promise<unknown> => disabled("payment", "verifyWebhook"),
   };
 }
 

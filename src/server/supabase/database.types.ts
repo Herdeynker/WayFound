@@ -849,6 +849,764 @@ export type Database = {
         }
         Relationships: []
       }
+      billing_adjustment_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          enabled: boolean
+          ends_at: string | null
+          id: string
+          kind: string
+          starts_at: string | null
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          enabled?: boolean
+          ends_at?: string | null
+          id?: string
+          kind: string
+          starts_at?: string | null
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          enabled?: boolean
+          ends_at?: string | null
+          id?: string
+          kind?: string
+          starts_at?: string | null
+        }
+        Relationships: []
+      }
+      billing_checkout_intents: {
+        Row: {
+          amount_kobo: number
+          authorization_url: string | null
+          callback_path: string
+          created_at: string
+          currency: string
+          expires_at: string
+          failure_code: string | null
+          id: string
+          idempotency_key: string
+          initialized_at: string | null
+          internal_plan_code: string
+          interval: string
+          price_version_code: string
+          price_version_id: string
+          provider: string
+          provider_plan_code: string
+          provider_reference: string
+          status: string
+          updated_at: string
+          user_id: string
+          verified_at: string | null
+        }
+        Insert: {
+          amount_kobo: number
+          authorization_url?: string | null
+          callback_path?: string
+          created_at?: string
+          currency: string
+          expires_at?: string
+          failure_code?: string | null
+          id?: string
+          idempotency_key: string
+          initialized_at?: string | null
+          internal_plan_code: string
+          interval: string
+          price_version_code: string
+          price_version_id: string
+          provider?: string
+          provider_plan_code: string
+          provider_reference: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          verified_at?: string | null
+        }
+        Update: {
+          amount_kobo?: number
+          authorization_url?: string | null
+          callback_path?: string
+          created_at?: string
+          currency?: string
+          expires_at?: string
+          failure_code?: string | null
+          id?: string
+          idempotency_key?: string
+          initialized_at?: string | null
+          internal_plan_code?: string
+          interval?: string
+          price_version_code?: string
+          price_version_id?: string
+          provider?: string
+          provider_plan_code?: string
+          provider_reference?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_checkout_intents_price_version_id_fkey"
+            columns: ["price_version_id"]
+            isOneToOne: false
+            referencedRelation: "billing_price_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_customers: {
+        Row: {
+          created_at: string
+          email_fingerprint: string
+          id: string
+          provider: string
+          provider_customer_code: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_fingerprint: string
+          id?: string
+          provider?: string
+          provider_customer_code: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_fingerprint?: string
+          id?: string
+          provider?: string
+          provider_customer_code?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      billing_entitlements: {
+        Row: {
+          created_at: string
+          ends_at: string
+          id: string
+          internal_plan_code: string
+          plan_id: string
+          price_version_code: string
+          price_version_id: string
+          revocation_reason: string | null
+          revoked_at: string | null
+          source_payment_id: string
+          source_subscription_id: string | null
+          starts_at: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ends_at: string
+          id?: string
+          internal_plan_code: string
+          plan_id: string
+          price_version_code: string
+          price_version_id: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          source_payment_id: string
+          source_subscription_id?: string | null
+          starts_at: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ends_at?: string
+          id?: string
+          internal_plan_code?: string
+          plan_id?: string
+          price_version_code?: string
+          price_version_id?: string
+          revocation_reason?: string | null
+          revoked_at?: string | null
+          source_payment_id?: string
+          source_subscription_id?: string | null
+          starts_at?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_entitlements_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "billing_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_entitlements_price_version_id_fkey"
+            columns: ["price_version_id"]
+            isOneToOne: false
+            referencedRelation: "billing_price_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_entitlements_source_payment_id_fkey"
+            columns: ["source_payment_id"]
+            isOneToOne: true
+            referencedRelation: "billing_payments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_entitlements_source_subscription_id_fkey"
+            columns: ["source_subscription_id"]
+            isOneToOne: false
+            referencedRelation: "billing_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_features: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          display_name: string
+          enabled: boolean
+          id: string
+          metered: boolean
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description: string
+          display_name: string
+          enabled?: boolean
+          id?: string
+          metered?: boolean
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          display_name?: string
+          enabled?: boolean
+          id?: string
+          metered?: boolean
+        }
+        Relationships: []
+      }
+      billing_payments: {
+        Row: {
+          amount_kobo: number
+          authorization_brand: string | null
+          authorization_channel: string | null
+          authorization_last4: string | null
+          checkout_intent_id: string | null
+          created_at: string
+          currency: string
+          event_fingerprint: string | null
+          id: string
+          internal_plan_code: string
+          paid_at: string | null
+          plan_id: string
+          price_version_code: string
+          price_version_id: string
+          provider: string
+          provider_customer_code: string | null
+          provider_reference: string
+          provider_transaction_id: string
+          status: string
+          subscription_id: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_kobo: number
+          authorization_brand?: string | null
+          authorization_channel?: string | null
+          authorization_last4?: string | null
+          checkout_intent_id?: string | null
+          created_at?: string
+          currency: string
+          event_fingerprint?: string | null
+          id?: string
+          internal_plan_code: string
+          paid_at?: string | null
+          plan_id: string
+          price_version_code: string
+          price_version_id: string
+          provider?: string
+          provider_customer_code?: string | null
+          provider_reference: string
+          provider_transaction_id: string
+          status: string
+          subscription_id?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_kobo?: number
+          authorization_brand?: string | null
+          authorization_channel?: string | null
+          authorization_last4?: string | null
+          checkout_intent_id?: string | null
+          created_at?: string
+          currency?: string
+          event_fingerprint?: string | null
+          id?: string
+          internal_plan_code?: string
+          paid_at?: string | null
+          plan_id?: string
+          price_version_code?: string
+          price_version_id?: string
+          provider?: string
+          provider_customer_code?: string | null
+          provider_reference?: string
+          provider_transaction_id?: string
+          status?: string
+          subscription_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_payments_checkout_intent_id_fkey"
+            columns: ["checkout_intent_id"]
+            isOneToOne: false
+            referencedRelation: "billing_checkout_intents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payments_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "billing_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payments_price_version_id_fkey"
+            columns: ["price_version_id"]
+            isOneToOne: false
+            referencedRelation: "billing_price_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_payments_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "billing_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_plan_features: {
+        Row: {
+          created_at: string
+          enabled: boolean
+          feature_id: string
+          period_limit: number | null
+          plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          enabled?: boolean
+          feature_id: string
+          period_limit?: number | null
+          plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          enabled?: boolean
+          feature_id?: string
+          period_limit?: number | null
+          plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_plan_features_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "billing_features"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_plan_features_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "billing_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_plans: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          display_name: string
+          enabled: boolean
+          id: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description: string
+          display_name: string
+          enabled?: boolean
+          id?: string
+          sort_order: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          display_name?: string
+          enabled?: boolean
+          id?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      billing_price_versions: {
+        Row: {
+          amount_kobo: number
+          created_at: string
+          currency: string
+          enabled: boolean
+          id: string
+          interval: string
+          plan_id: string
+          valid_from: string
+          valid_until: string | null
+          version_code: string
+        }
+        Insert: {
+          amount_kobo: number
+          created_at?: string
+          currency: string
+          enabled?: boolean
+          id?: string
+          interval: string
+          plan_id: string
+          valid_from: string
+          valid_until?: string | null
+          version_code: string
+        }
+        Update: {
+          amount_kobo?: number
+          created_at?: string
+          currency?: string
+          enabled?: boolean
+          id?: string
+          interval?: string
+          plan_id?: string
+          valid_from?: string
+          valid_until?: string | null
+          version_code?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_price_versions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "billing_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_provider_events: {
+        Row: {
+          attempt_count: number
+          available_at: string
+          created_at: string
+          event_fingerprint: string
+          event_type: string
+          failure_code: string | null
+          id: string
+          lease_expires_at: string | null
+          lease_token: string | null
+          occurred_at: string
+          processed_at: string | null
+          provider: string
+          provider_customer_code: string | null
+          provider_reference: string | null
+          provider_subscription_code: string | null
+          safe_data: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          available_at?: string
+          created_at?: string
+          event_fingerprint: string
+          event_type: string
+          failure_code?: string | null
+          id?: string
+          lease_expires_at?: string | null
+          lease_token?: string | null
+          occurred_at: string
+          processed_at?: string | null
+          provider?: string
+          provider_customer_code?: string | null
+          provider_reference?: string | null
+          provider_subscription_code?: string | null
+          safe_data?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          available_at?: string
+          created_at?: string
+          event_fingerprint?: string
+          event_type?: string
+          failure_code?: string | null
+          id?: string
+          lease_expires_at?: string | null
+          lease_token?: string | null
+          occurred_at?: string
+          processed_at?: string | null
+          provider?: string
+          provider_customer_code?: string | null
+          provider_reference?: string | null
+          provider_subscription_code?: string | null
+          safe_data?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      billing_reconciliation_runs: {
+        Row: {
+          checked_count: number
+          completed_at: string | null
+          failure_code: string | null
+          failure_count: number
+          id: string
+          idempotency_key: string
+          repaired_count: number
+          started_at: string
+          status: string
+        }
+        Insert: {
+          checked_count?: number
+          completed_at?: string | null
+          failure_code?: string | null
+          failure_count?: number
+          id?: string
+          idempotency_key: string
+          repaired_count?: number
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          checked_count?: number
+          completed_at?: string | null
+          failure_code?: string | null
+          failure_count?: number
+          id?: string
+          idempotency_key?: string
+          repaired_count?: number
+          started_at?: string
+          status?: string
+        }
+        Relationships: []
+      }
+      billing_subscription_secrets: {
+        Row: {
+          created_at: string
+          provider_email_token: string
+          subscription_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          provider_email_token: string
+          subscription_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          provider_email_token?: string
+          subscription_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_subscription_secrets_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: true
+            referencedRelation: "billing_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_subscriptions: {
+        Row: {
+          cancel_at_period_end: boolean
+          cancelled_at: string | null
+          checkout_intent_id: string | null
+          created_at: string
+          current_period_end: string | null
+          current_period_start: string | null
+          ended_at: string | null
+          id: string
+          internal_plan_code: string
+          last_failed_payment_at: string | null
+          last_provider_event_at: string | null
+          last_successful_payment_at: string | null
+          next_payment_at: string | null
+          plan_id: string
+          price_version_code: string
+          price_version_id: string
+          provider: string
+          provider_customer_code: string | null
+          provider_plan_code: string
+          provider_status: string | null
+          provider_subscription_code: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cancel_at_period_end?: boolean
+          cancelled_at?: string | null
+          checkout_intent_id?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          ended_at?: string | null
+          id?: string
+          internal_plan_code: string
+          last_failed_payment_at?: string | null
+          last_provider_event_at?: string | null
+          last_successful_payment_at?: string | null
+          next_payment_at?: string | null
+          plan_id: string
+          price_version_code: string
+          price_version_id: string
+          provider?: string
+          provider_customer_code?: string | null
+          provider_plan_code: string
+          provider_status?: string | null
+          provider_subscription_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cancel_at_period_end?: boolean
+          cancelled_at?: string | null
+          checkout_intent_id?: string | null
+          created_at?: string
+          current_period_end?: string | null
+          current_period_start?: string | null
+          ended_at?: string | null
+          id?: string
+          internal_plan_code?: string
+          last_failed_payment_at?: string | null
+          last_provider_event_at?: string | null
+          last_successful_payment_at?: string | null
+          next_payment_at?: string | null
+          plan_id?: string
+          price_version_code?: string
+          price_version_id?: string
+          provider?: string
+          provider_customer_code?: string | null
+          provider_plan_code?: string
+          provider_status?: string | null
+          provider_subscription_code?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_subscriptions_checkout_intent_id_fkey"
+            columns: ["checkout_intent_id"]
+            isOneToOne: true
+            referencedRelation: "billing_checkout_intents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_plan_id_fkey"
+            columns: ["plan_id"]
+            isOneToOne: false
+            referencedRelation: "billing_plans"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_subscriptions_price_version_id_fkey"
+            columns: ["price_version_id"]
+            isOneToOne: false
+            referencedRelation: "billing_price_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      billing_usage_ledger: {
+        Row: {
+          created_at: string
+          entitlement_id: string
+          feature_id: string
+          id: string
+          idempotency_key: string
+          metadata: Json
+          occurred_at: string
+          quantity: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entitlement_id: string
+          feature_id: string
+          id?: string
+          idempotency_key: string
+          metadata?: Json
+          occurred_at?: string
+          quantity: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entitlement_id?: string
+          feature_id?: string
+          id?: string
+          idempotency_key?: string
+          metadata?: Json
+          occurred_at?: string
+          quantity?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_usage_ledger_entitlement_id_fkey"
+            columns: ["entitlement_id"]
+            isOneToOne: false
+            referencedRelation: "billing_entitlements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "billing_usage_ledger_feature_id_fkey"
+            columns: ["feature_id"]
+            isOneToOne: false
+            referencedRelation: "billing_features"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       certifications: {
         Row: {
           created_at: string
@@ -4783,6 +5541,47 @@ export type Database = {
       phase11_unsubscribe_email: {
         Args: { candidate_policy_version: string }
         Returns: boolean
+      }
+      phase12_claim_provider_events: {
+        Args: {
+          batch_limit?: number
+          lease_seconds?: number
+          worker_token: string
+        }
+        Returns: string[]
+      }
+      phase12_consume_usage: {
+        Args: {
+          candidate_feature_code: string
+          candidate_idempotency_key: string
+          candidate_quantity: number
+        }
+        Returns: Json
+      }
+      phase12_consume_usage_for_user: {
+        Args: {
+          candidate_feature_code: string
+          candidate_idempotency_key: string
+          candidate_quantity: number
+          candidate_user_id: string
+        }
+        Returns: Json
+      }
+      phase12_expire_entitlements: { Args: never; Returns: number }
+      phase12_record_verified_payment: {
+        Args: {
+          candidate_authorization_brand?: string
+          candidate_authorization_channel?: string
+          candidate_authorization_last4?: string
+          candidate_checkout_intent_id: string
+          candidate_event_fingerprint?: string
+          candidate_paid_at: string
+          candidate_provider_customer_code: string
+          candidate_provider_subscription_code: string
+          candidate_provider_transaction_id: string
+          candidate_user_id: string
+        }
+        Returns: string
       }
       phase4_valid_condition: { Args: { value: Json }; Returns: boolean }
       phase4_valid_normalized_value: { Args: { value: Json }; Returns: boolean }

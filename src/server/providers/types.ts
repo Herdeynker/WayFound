@@ -54,8 +54,3 @@ export interface EmailProvider {
 export interface TelegramProvider {
   sendMessage(chatId: string, text: string): Promise<ProviderReceipt>;
 }
-
-export interface PaymentProvider {
-  createCheckout(input: { customerReference: string; productReference: string }): Promise<ProviderReceipt>;
-  verifyWebhook(input: { rawBody: string; signature: string }): Promise<unknown>;
-}

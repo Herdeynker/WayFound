@@ -140,22 +140,26 @@ export function DocumentLibrary({
   const [documentType, setDocumentType] = useState("");
   const [category, setCategory] = useState("identity");
   const [expiresOn, setExpiresOn] = useState("");
+  const [hydrated, setHydrated] = useState(false);
   const requestRef = useRef<XMLHttpRequest | null>(null);
 
   useEffect(() => {
-    if (fixtureState !== "default") return;
-    try {
-      const stored = sessionStorage.getItem(uploadRecoveryKey);
-      if (!stored) return;
-      const draft = JSON.parse(stored) as Partial<UploadDraft>;
-      if (typeof draft.documentType === "string") setDocumentType(draft.documentType.slice(0, 80));
-      if (documentCategories.includes(draft.category as (typeof documentCategories)[number]))
-        setCategory(draft.category!);
-      if (typeof draft.expiresOn === "string") setExpiresOn(draft.expiresOn);
-      setRecovery(true);
-    } catch {
-      sessionStorage.removeItem(uploadRecoveryKey);
+    if (fixtureState === "default") {
+      try {
+        const stored = sessionStorage.getItem(uploadRecoveryKey);
+        if (stored) {
+          const draft = JSON.parse(stored) as Partial<UploadDraft>;
+          if (typeof draft.documentType === "string") setDocumentType(draft.documentType.slice(0, 80));
+          if (documentCategories.includes(draft.category as (typeof documentCategories)[number]))
+            setCategory(draft.category!);
+          if (typeof draft.expiresOn === "string") setExpiresOn(draft.expiresOn);
+          setRecovery(true);
+        }
+      } catch {
+        sessionStorage.removeItem(uploadRecoveryKey);
+      }
     }
+    setHydrated(true);
   }, [fixtureState]);
 
   const sendUpload = (data: FormData) =>
@@ -264,7 +268,9 @@ export function DocumentLibrary({
         <p>Private files stay in your account. Uploading a replacement preserves the earlier version.</p>
       </header>
       <form
+        aria-busy={!hydrated}
         className="document-upload-form"
+        data-hydrated={hydrated}
         onSubmit={(event) => {
           event.preventDefault();
           void upload(event.currentTarget);
@@ -303,7 +309,7 @@ export function DocumentLibrary({
             value={expiresOn}
           />
         </FormField>
-        <Button loading={uploading} type="submit" variant="teal">
+        <Button disabled={!hydrated} loading={uploading} type="submit" variant="teal">
           Upload private document
         </Button>
         {uploading ? (
@@ -367,11 +373,13 @@ export function ApplicationTracker({
   initial: ApplicationItem[];
 }) {
   const [applications, setApplications] = useState(initial);
+  const [hydrated, setHydrated] = useState(false);
   const [error, setError] = useState<string | null>(
     fixtureState === "error"
       ? "Your application workspaces could not be loaded. Nothing was changed. Try again shortly."
       : null,
   );
+  useEffect(() => setHydrated(true), []);
   const transition = async (application: ApplicationItem, status: ApplicationStatus) => {
     setError(null);
     const response = await fetch(`/api/applications/${application.id}/status`, {
@@ -418,7 +426,7 @@ export function ApplicationTracker({
       </section>
     );
   return (
-    <section className="application-surface" aria-labelledby="applications-title">
+    <section className="application-surface" aria-labelledby="applications-title" data-hydrated={hydrated}>
       <header className="application-hero">
         <p className="eyebrow">MY APPLICATIONS</p>
         <h1 id="applications-title">Move from match to momentum.</h1>

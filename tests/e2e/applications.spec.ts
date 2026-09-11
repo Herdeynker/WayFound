@@ -4,10 +4,14 @@ test.describe("Phase 9 document and application experience", () => {
   test("keeps preparation state honest and checklist order deterministic", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "desktop", "desktop journey is covered once");
 
-    await page.goto("/applications");
+    await page.goto("/applications", { waitUntil: "networkidle" });
     await expect(page.getByRole("heading", { name: "Move from match to momentum." })).toBeVisible();
-    await page.getByRole("link", { name: "Open workspace" }).click();
-    await expect(page).toHaveURL(/\/applications\/11111111-1111-4111-8111-111111111111$/);
+    await expect(page.locator(".application-surface")).toHaveAttribute("data-hydrated", "true");
+    const workspaceUrl = /\/applications\/11111111-1111-4111-8111-111111111111$/;
+    await Promise.all([
+      page.waitForURL(workspaceUrl, { timeout: 15_000 }),
+      page.getByRole("link", { name: "Open workspace" }).click(),
+    ]);
     await expect(page.getByRole("heading", { name: "Global Technology Scholarship" })).toBeVisible();
     await expect(page.locator(".checklist span")).toHaveText([
       /Official transcript required/,
@@ -30,19 +34,28 @@ test.describe("Phase 9 document and application experience", () => {
     await page.waitForTimeout(1_000);
     await page.reload({ waitUntil: "networkidle" });
     const fileInput = page.locator('input[type="file"][name="file"]');
+    const uploadButton = page.getByRole("button", { name: "Upload private document" });
     await expect(fileInput).toHaveAttribute("capture", "environment");
-    await page.getByLabel("Document type").fill("Passport");
+    await expect(page.locator(".document-upload-form")).toHaveAttribute("data-hydrated", "true");
+    await expect(uploadButton).toBeEnabled();
+    await page.route("**/api/documents", async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 3_000));
+      await route.fulfill({ contentType: "application/json", json: { ok: true }, status: 200 });
+    });
+    const documentType = page.getByLabel("Document type");
+    await documentType.fill("Passport");
+    await expect(documentType).toHaveValue("Passport");
     await fileInput.setInputFiles({
       buffer: Buffer.from("%PDF-1.4 phase9 fixture"),
       mimeType: "application/pdf",
       name: "passport.pdf",
     });
-    await page.route("**/api/documents", async (route) => {
-      await new Promise((resolve) => setTimeout(resolve, 3_000));
-      await route.fulfill({ contentType: "application/json", json: { ok: true }, status: 200 });
-    });
-    await page.getByRole("button", { name: "Upload private document" }).click();
-    await expect(page.getByRole("button", { name: "Cancel upload" })).toBeVisible();
+    await expect(fileInput).toHaveValue(/passport\.pdf$/);
+    expect(
+      await page.locator(".document-upload-form").evaluate((form: HTMLFormElement) => form.checkValidity()),
+    ).toBe(true);
+    await uploadButton.click();
+    await expect(page.getByRole("button", { name: "Cancel upload" })).toBeVisible({ timeout: 10_000 });
     await page.getByRole("button", { name: "Cancel upload" }).click();
     await expect(page.locator(".field-error[role='alert']")).toContainText("Upload cancelled");
     await expect(page.getByRole("heading", { name: "Upload recovery available" })).toBeVisible();
@@ -56,7 +69,7 @@ test.describe("Phase 9 document and application experience", () => {
       mimeType: "application/pdf",
       name: "passport.pdf",
     });
-    await page.getByRole("button", { name: "Upload private document" }).click();
+    await uploadButton.click();
     await expect(page.getByText(/Document saved privately/)).toBeVisible();
     await expect(page.getByRole("heading", { name: "Upload recovery available" })).toHaveCount(0);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);

@@ -5,6 +5,7 @@ import { getCurrentUser, hasCurrentConsent } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
 import { InMemoryFixedWindowRateLimiter } from "@/server/security/rate-limit";
 import { getRequestIdentifier } from "@/server/security/request";
+import { BillingAccessError, requirePaidFeature } from "@/server/billing/service";
 
 const limiter = new InMemoryFixedWindowRateLimiter();
 
@@ -53,6 +54,19 @@ export async function POST(request: NextRequest) {
       { error: "Review the application, facts, tone and word limit before generating." },
       { status: 400 },
     );
+  try {
+    await requirePaidFeature(client, "ai_documents", parsed.data.idempotencyKey);
+  } catch (error) {
+    const limited = error instanceof BillingAccessError && error.code === "USAGE_LIMIT_REACHED";
+    return NextResponse.json(
+      {
+        error: limited
+          ? "Your writing allowance is used for this paid period."
+          : "A verified paid plan is required for writing assistance.",
+      },
+      { status: limited ? 429 : 402 },
+    );
+  }
   try {
     const result = await generateApplicationDraft({ userId: user.id, userClient: client, ...parsed.data });
     return NextResponse.json({ ok: true, ...result }, { headers: cookieResponse.headers });

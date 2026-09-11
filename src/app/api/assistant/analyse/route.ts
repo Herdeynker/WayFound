@@ -5,6 +5,8 @@ import { getCurrentUser, hasCurrentConsent } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
 import { InMemoryFixedWindowRateLimiter } from "@/server/security/rate-limit";
 import { getRequestIdentifier } from "@/server/security/request";
+import { randomUUID } from "node:crypto";
+import { BillingAccessError, requirePaidFeature } from "@/server/billing/service";
 
 const limiter = new InMemoryFixedWindowRateLimiter();
 
@@ -30,6 +32,19 @@ export async function POST(request: NextRequest) {
       { error: "Provide a valid application and CV text between 200 and 50,000 characters." },
       { status: 400 },
     );
+  try {
+    await requirePaidFeature(client, "cv_analysis", randomUUID());
+  } catch (error) {
+    const limited = error instanceof BillingAccessError && error.code === "USAGE_LIMIT_REACHED";
+    return NextResponse.json(
+      {
+        error: limited
+          ? "Your CV analysis allowance is used for this paid period."
+          : "A verified paid plan is required for CV analysis.",
+      },
+      { status: limited ? 429 : 402 },
+    );
+  }
   try {
     const result = await runCvAnalysis({
       userId: user.id,

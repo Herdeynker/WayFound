@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Route } from "next";
 import { isTestFixtureRequest, requireConsentedUser } from "@/server/auth/guards";
 
 export default async function SettingsLayout({ children }: { children: React.ReactNode }) {
@@ -17,6 +18,7 @@ export default async function SettingsLayout({ children }: { children: React.Rea
         <Link href="/settings/account">Account</Link>
         <Link href="/settings/privacy">Privacy & consent</Link>
         <Link href="/settings/notifications">Notifications</Link>
+        <Link href={"/settings/billing" as Route}>Billing</Link>
       </nav>
       {children}
     </main>

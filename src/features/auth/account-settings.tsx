@@ -64,6 +64,17 @@ export function AccountSettings({ email, exportRequested, deletionRequested, del
         </a>
       </Card>
       <Card>
+        <p className="card-eyebrow">Billing</p>
+        <h2>Plans, access and payments</h2>
+        <p className="settings-muted">
+          Review verified payments, paid-through dates, usage and renewal controls without exposing provider
+          details.
+        </p>
+        <a className="ui-button ui-button-secondary" href="/settings/billing">
+          Open billing <span aria-hidden="true">→</span>
+        </a>
+      </Card>
+      <Card>
         <p className="card-eyebrow">Your data</p>
         <h2>Export or delete your account</h2>
         <p className="settings-muted">

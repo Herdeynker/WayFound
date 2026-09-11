@@ -258,6 +258,25 @@ export async function runNotificationBatch(input: {
   if (rows.error) throw new Error("Claimed notifications could not be loaded");
   const result = { claimed: ids.length, sent: 0, retried: 0, suppressed: 0, failed: 0 };
   for (const delivery of (rows.data ?? []) as unknown as ClaimedDelivery[]) {
+    if (delivery.notification_events.event_type === "strong_match") {
+      const metered = await client.rpc("phase12_consume_usage_for_user", {
+        candidate_user_id: delivery.user_id,
+        candidate_feature_code: "premium_alerts",
+        candidate_quantity: 1,
+        candidate_idempotency_key: delivery.id,
+      });
+      if (metered.error) {
+        await finishDelivery({
+          client,
+          delivery,
+          workerToken,
+          outcome: "suppressed",
+          failureCode: metered.error.message.includes("limit") ? "paid_usage_limit" : "paid_access_required",
+        });
+        result.suppressed += 1;
+        continue;
+      }
+    }
     const destination = await resolveDestination(client, delivery);
     const suppression = await client
       .from("notification_suppressions")

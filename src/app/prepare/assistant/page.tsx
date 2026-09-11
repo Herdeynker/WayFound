@@ -3,6 +3,8 @@ import { AssistantWorkspace } from "@/features/assistant/workspace";
 import { phase10Application, phase10Facts, phase10Summary } from "@/features/assistant/fixture";
 import { isTestFixtureRequest, requireConsentedUser } from "@/server/auth/guards";
 import { getAssistantContext, getAssistantSummary } from "@/server/assistant/service";
+import { hasPaidEntitlement } from "@/server/billing/service";
+import { PaidAccessGate } from "@/features/billing/paid-access-gate";
 
 const fixtureStates = new Set<AssistantState>([
   "default",
@@ -33,6 +35,8 @@ export default async function AssistantPage({ searchParams }: { searchParams: Pr
   }
   const { client, user } = await requireConsentedUser();
   if (!user) return null;
+  if (!(await hasPaidEntitlement(user.id)))
+    return <PaidAccessGate title="Unlock the application assistant" />;
   const context = await getAssistantContext(user.id);
   return (
     <AssistantWorkspace
