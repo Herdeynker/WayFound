@@ -2,10 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { readingSubmissionSchema } from "@/features/ielts/model";
 import { getCurrentUser } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
-import { InMemoryFixedWindowRateLimiter } from "@/server/security/rate-limit";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 import { getRequestIdentifier } from "@/server/security/request";
-
-const limiter = new InMemoryFixedWindowRateLimiter();
 
 export async function POST(request: NextRequest) {
   const cookieResponse = NextResponse.json({ ok: true });
@@ -13,7 +11,10 @@ export async function POST(request: NextRequest) {
   const user = await getCurrentUser(client);
   if (!user)
     return NextResponse.json({ error: "Your session has expired. Please sign in again." }, { status: 401 });
-  if (!limiter.check(`${user.id}:${getRequestIdentifier(request)}`, 20, 60_000).allowed)
+  if (
+    !(await consumeRateLimit("ielts.reading", `${user.id}:${getRequestIdentifier(request)}`, 20, 60_000))
+      .allowed
+  )
     return NextResponse.json(
       { error: "Too many practice submissions. Wait a minute and retry." },
       { status: 429 },

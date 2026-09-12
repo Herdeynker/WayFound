@@ -1,14 +1,12 @@
 import "server-only";
 
 import { NextResponse, type NextRequest } from "next/server";
-import { InMemoryFixedWindowRateLimiter } from "@/server/security/rate-limit";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
 
-export const authRateLimiter = new InMemoryFixedWindowRateLimiter();
-
-export function rateLimitAuth(request: NextRequest, action: string): NextResponse | null {
+export async function rateLimitAuth(request: NextRequest, action: string): Promise<NextResponse | null> {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  const result = authRateLimiter.check(`${action}:${ip}`, 8, 60_000);
+  const result = await consumeRateLimit(`auth.${action}`, ip, 8, 60_000);
   if (result.allowed) return null;
   return NextResponse.json(
     { error: "Too many attempts. Please wait a minute and try again." },

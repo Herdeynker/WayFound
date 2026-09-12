@@ -20,17 +20,62 @@ const states = new Set<BillingViewState>([
   "disabled",
 ]);
 
+const fixturePlans: BillingPlanView[] = [
+  {
+    id: "phase12-fixture-weekly",
+    code: "weekly",
+    name: "Weekly",
+    description: "The same core paid tools with a shorter commitment.",
+    priceVersionId: "phase12-fixture-weekly-price",
+    priceVersion: "launch-v1",
+    amountKobo: 700_000,
+    currency: "NGN",
+    interval: "weekly",
+    features: ["Advanced matches", "CV analysis", "AI documents", "Premium alerts"],
+    providerConfigured: true,
+  },
+  {
+    id: "phase12-fixture-monthly",
+    code: "monthly",
+    name: "Monthly",
+    description: "The same core paid tools billed each month.",
+    priceVersionId: "phase12-fixture-monthly-price",
+    priceVersion: "launch-v1",
+    amountKobo: 2_000_000,
+    currency: "NGN",
+    interval: "monthly",
+    badge: "Most Popular",
+    features: ["Advanced matches", "CV analysis", "AI documents", "Premium alerts"],
+    providerConfigured: true,
+  },
+  {
+    id: "phase12-fixture-yearly",
+    code: "yearly",
+    name: "Yearly",
+    description: "The same core paid tools with the best annual value.",
+    priceVersionId: "phase12-fixture-yearly-price",
+    priceVersion: "launch-v1",
+    amountKobo: 8_000_000,
+    currency: "NGN",
+    interval: "annually",
+    badge: "Best Value",
+    features: ["Advanced matches", "CV analysis", "AI documents", "Premium alerts"],
+    providerConfigured: true,
+  },
+];
+
 export default async function PricingPage({ searchParams }: { searchParams: Promise<{ state?: string }> }) {
   const fixture = await isTestFixtureRequest();
   const requested = (await searchParams).state;
   const state =
     fixture && states.has(requested as BillingViewState) ? (requested as BillingViewState) : "ready";
-  let plans: BillingPlanView[] = [];
-  try {
-    plans = await getBillingCatalog();
-  } catch {
-    /* rendered as an honest empty/error state below */
-  }
+  let plans: BillingPlanView[] = fixture ? fixturePlans : [];
+  if (!fixture)
+    try {
+      plans = await getBillingCatalog();
+    } catch {
+      /* rendered as an honest empty/error state below */
+    }
   return (
     <main className="billing-page">
       <header className="billing-topbar">

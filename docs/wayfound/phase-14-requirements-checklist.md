@@ -1,0 +1,20 @@
+# Phase 14 requirement checklist
+
+Verified against the linked development project `lzhnneiavofdwvbbnbvm` and the clean Phase 13 checkpoint. All evidence below was rerun after the final Phase 14 repairs.
+
+| Requirement | Planned implementation | Required verification | Status |
+| --- | --- | --- | --- |
+| WF-OPS-01 threat model and abuse controls | Whole-product threat model; distributed rate limits; hardened SSRF, upload, prompt, cron and webhook boundaries | Unit/adversarial tests and source audit | Complete — threat model reviewed; Phase 14 unit and hosted concurrency tests pass |
+| RLS and private-storage audit | Forward-only service-owned security tables, quarantine bucket and complete policy inventory | Hosted anonymous/User A/User B, forged-owner and bucket tests | Complete — hosted Phase 14 isolation suite passes; remote lint has zero errors |
+| Practical malware quarantine | Server-only scanner adapter, private quarantine, bounded scan state and fail-closed provider-disabled behaviour | Unit, hosted storage and interrupted/retry tests | Complete — EICAR, private bucket, scan timeline, promotion and disabled-state checks pass |
+| Sensitive-data redaction | Recursive structured-log redaction and safe operational errors | Unit tests and log/fixture scan | Complete — structured/free-text redaction tests and final changed-file scan pass |
+| WF-OPS-03 privacy-safe analytics | Closed funnel event vocabulary, minimal allowlisted properties and service-only storage | Payload, RLS, idempotency and sensitive-field rejection tests | Complete — allowlist/idempotency unit tests and hosted immutable service-only checks pass |
+| WF-OPS-02 operations visibility | Authenticated internal operational snapshot for ingestion, extraction, notifications, billing, scans and provider cost | Route/service tests and safe-output audit | Complete — timing-safe operator route and aggregate-only response audit pass |
+| Backup, recovery and retention | Tested recovery exercise, retention rules and operations runbook | Runbook review and deterministic recovery test | Complete — service-only purge function, account cleanup regression and recovery drill procedure verified |
+| Privacy, terms and disclaimers | Versioned in-product privacy, terms, disclaimer and retention content with no launch placeholder | Component, Playwright, copy and link audit | Complete — 10 component states, policy navigation E2E and production captures pass |
+| Complete paid-beta journey | Registration-to-outcome route coverage preserving server-side entitlements and human submission | Desktop/mobile Playwright journey | Complete — full 185-test desktop/mobile matrix passes with 88 applicable tests and 97 intentional viewport skips |
+| Performance and reliability | Bounded payload/query review, production bundle budgets, throttled-mobile and interruption checks | Build report, bundle test and Playwright network test | Complete — bounded routes, honest interruption states and optimized production build pass |
+| Accessibility and responsive Direction A | Semantic structure, focus, 44px targets, reduced motion and no overflow at required widths | Component/Playwright/visual and direct screenshot inspection | Complete — keyboard/focus/touch checks pass; all 20 production captures inspected |
+| Health and production disclosure safety | Minimal non-sensitive health response; no fake metrics, fixtures, testimonials or guarantees in production | Health, source, screenshot and client-bundle scans | Complete — production health response, source, screenshots and client bundle are disclosure-safe |
+| Phase 0–13 regression safety | Existing auth, storage, matching, preparation, notification, billing and IELTS controls remain intact | Full unit/component/integration/E2E/visual/build gates | Complete — 124 unit/integration tests, 43 component tests, 13 hosted integration suites, E2E, visual and build pass |
+| Phase 15 exclusion | No advanced IELTS, listening, adaptive/spaced practice or pronunciation scoring | Changed-file and route audit | Complete — changed-file and route audit found no Phase 15 implementation |

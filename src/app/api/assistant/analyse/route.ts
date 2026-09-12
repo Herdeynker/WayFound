@@ -3,12 +3,10 @@ import { cvAnalysisRequestSchema } from "@/server/assistant/model";
 import { runCvAnalysis } from "@/server/assistant/service";
 import { getCurrentUser, hasCurrentConsent } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
-import { InMemoryFixedWindowRateLimiter } from "@/server/security/rate-limit";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 import { getRequestIdentifier } from "@/server/security/request";
 import { randomUUID } from "node:crypto";
 import { BillingAccessError, requirePaidFeature } from "@/server/billing/service";
-
-const limiter = new InMemoryFixedWindowRateLimiter();
 
 export async function POST(request: NextRequest) {
   const cookieResponse = NextResponse.json({ ok: true });
@@ -21,7 +19,10 @@ export async function POST(request: NextRequest) {
       { error: "AI processing consent is required before CV analysis." },
       { status: 403 },
     );
-  if (!limiter.check(`${user.id}:${getRequestIdentifier(request)}`, 6, 60_000).allowed)
+  if (
+    !(await consumeRateLimit("assistant.analyse", `${user.id}:${getRequestIdentifier(request)}`, 6, 60_000))
+      .allowed
+  )
     return NextResponse.json(
       { error: "Too many analysis requests. Wait a minute and try again." },
       { status: 429 },

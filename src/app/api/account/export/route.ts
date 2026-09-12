@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
 import { getCurrentUser, recordAudit } from "@/server/auth/service";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.json({
@@ -10,6 +11,11 @@ export async function POST(request: NextRequest) {
   const client = createSupabaseRouteClient(request, response);
   const user = await getCurrentUser(client);
   if (!user) return NextResponse.json({ error: "Please sign in again." }, { status: 401 });
+  if (!(await consumeRateLimit("account.export", user.id, 3, 24 * 60 * 60_000)).allowed)
+    return NextResponse.json(
+      { error: "An export was recently requested. Please wait before retrying." },
+      { status: 429 },
+    );
   const { data: active } = await client
     .from("data_export_requests")
     .select("id")

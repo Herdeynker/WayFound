@@ -4,9 +4,10 @@ import { rateLimitAuth } from "@/server/auth/route";
 import { credentialsSchema, issueMessages } from "@/server/auth/schemas";
 import { bootstrapAccount, hasCurrentRequiredConsent, recordAudit } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
+import { analyticsIdempotencyKey, recordProductEvent } from "@/server/analytics";
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimitAuth(request, "login");
+  const limited = await rateLimitAuth(request, "login");
   if (limited) return limited;
   let body: unknown;
   try {
@@ -24,6 +25,15 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Those sign-in details were not accepted." }, { status: 401 });
   await bootstrapAccount(client, data.user);
   await recordAudit(client, data.user.id, "account_login");
+  await recordProductEvent({
+    userId: data.user.id,
+    eventType: "return_session",
+    idempotencyKey: analyticsIdempotencyKey(
+      "return_session",
+      `${data.user.id}:${new Date().toISOString().slice(0, 10)}`,
+    ),
+    properties: { channel: "password" },
+  });
   const next =
     typeof (body as { next?: unknown })?.next === "string" ? (body as { next: string }).next : null;
   const destination = (await hasCurrentRequiredConsent(client, data.user.id))

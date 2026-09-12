@@ -3,6 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser, hasCurrentConsent } from "@/server/auth/service";
 import { documentUploadSchema, validateDocumentUpload } from "@/server/applications/model";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
+import { consumeRateLimit } from "@/server/security/rate-limit";
+import { getRequestIdentifier } from "@/server/security/request";
+import { quarantineScanAndPromote } from "@/server/security/upload-scan";
 
 type QueryResult = { data: unknown; error: { code?: string } | null };
 type Phase9Query = {
@@ -32,6 +35,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Your session has expired. Please sign in again." }, { status: 401 });
   if (!(await hasCurrentConsent(client, user.id, "document_storage")))
     return NextResponse.json({ error: "Document storage consent is required." }, { status: 403 });
+  if (
+    !(await consumeRateLimit("documents.upload", `${user.id}:${getRequestIdentifier(request)}`, 10, 60_000))
+      .allowed
+  )
+    return NextResponse.json({ error: "Too many uploads. Wait a minute and retry." }, { status: 429 });
   const form = await request.formData();
   const file = form.get("file");
   const metadata = documentUploadSchema.safeParse({
@@ -62,7 +70,7 @@ export async function POST(request: NextRequest) {
         document_type: metadata.data.documentType,
         category: metadata.data.category,
         expires_on: metadata.data.expiresOn ?? null,
-        readiness_status: "available",
+        readiness_status: "pending",
         original_filename: file.name.slice(0, 240),
         mime_type: file.type,
         size_bytes: file.size,
@@ -96,11 +104,25 @@ export async function POST(request: NextRequest) {
       ? (version.data as { version_number: number }).version_number
       : 0;
   const path = `${user.id}/${documentId}/${randomUUID()}${validated.extension}`;
-  const upload = await client.storage
-    .from("user-documents")
-    .upload(path, bytes, { contentType: file.type, upsert: false });
-  if (upload.error)
-    return NextResponse.json({ error: "The upload was interrupted. Please retry." }, { status: 502 });
+  const upload = await quarantineScanAndPromote({
+    userId: user.id,
+    purpose: "application_document",
+    idempotencyKey,
+    bytes,
+    originalFilename: file.name,
+    contentType: file.type,
+    destinationPath: path,
+  });
+  if (!upload.ok)
+    return NextResponse.json(
+      {
+        error:
+          upload.reason === "infected"
+            ? "The upload did not pass the safety scan."
+            : "Document scanning is unavailable. Nothing was stored.",
+      },
+      { status: upload.reason === "infected" ? 422 : 503 },
+    );
   const created = await phase9
     .from("document_versions")
     .insert({
@@ -126,7 +148,12 @@ export async function POST(request: NextRequest) {
   }
   const current = await phase9
     .from("document_metadata")
-    .update({ current_version_id: versionId, storage_path: path, updated_at: new Date().toISOString() })
+    .update({
+      current_version_id: versionId,
+      storage_path: path,
+      readiness_status: "available",
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", documentId)
     .select("id")
     .single();

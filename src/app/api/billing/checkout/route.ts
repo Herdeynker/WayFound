@@ -3,18 +3,20 @@ import { checkoutRequestSchema } from "@/server/billing/model";
 import { initializeCheckout } from "@/server/billing/service";
 import { BillingProviderError } from "@/server/billing/provider";
 import { getCurrentUser } from "@/server/auth/service";
-import { InMemoryFixedWindowRateLimiter } from "@/server/security/rate-limit";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 import { getRequestIdentifier } from "@/server/security/request";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
-
-const limiter = new InMemoryFixedWindowRateLimiter();
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
   const client = createSupabaseRouteClient(request, response);
   const user = await getCurrentUser(client);
   if (!user) return NextResponse.json({ error: "Please sign in to choose a plan." }, { status: 401 });
-  if (!limiter.check(`${user.id}:${getRequestIdentifier(request)}`, 4, 5 * 60_000).allowed)
+  if (
+    !(
+      await consumeRateLimit("billing.checkout", `${user.id}:${getRequestIdentifier(request)}`, 4, 5 * 60_000)
+    ).allowed
+  )
     return NextResponse.json(
       { error: "A checkout was recently started. Wait before trying again." },
       { status: 429 },

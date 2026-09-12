@@ -4,9 +4,10 @@ import { rateLimitAuth } from "@/server/auth/route";
 import { credentialsSchema, issueMessages } from "@/server/auth/schemas";
 import { bootstrapAccount, hasCurrentRequiredConsent, recordAudit } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
+import { recordProductEvent } from "@/server/analytics";
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimitAuth(request, "register");
+  const limited = await rateLimitAuth(request, "register");
   if (limited) return limited;
   let body: unknown;
   try {
@@ -35,6 +36,12 @@ export async function POST(request: NextRequest) {
     await bootstrapAccount(client, data.user);
     await recordAudit(client, data.user.id, "account_registered");
   }
+  await recordProductEvent({
+    userId: data.user.id,
+    eventType: "registration",
+    idempotencyKey: data.user.id,
+    properties: { channel: "email" },
+  });
   return NextResponse.json(
     {
       ok: true,

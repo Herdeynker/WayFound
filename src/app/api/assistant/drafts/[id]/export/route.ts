@@ -6,6 +6,8 @@ import { getExportRevision, recordExport } from "@/server/assistant/service";
 import { getCurrentUser } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
 import { hasPaidEntitlement } from "@/server/billing/service";
+import { analyticsIdempotencyKey, recordProductEvent } from "@/server/analytics";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 
 export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const cookieResponse = NextResponse.json({ ok: true });
@@ -18,6 +20,8 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       { error: "A verified paid plan is required to export drafts." },
       { status: 402 },
     );
+  if (!(await consumeRateLimit("assistant.export", user.id, 12, 60_000)).allowed)
+    return NextResponse.json({ error: "Too many exports. Wait a minute and retry." }, { status: 429 });
   const { id } = await params;
   const format = request.nextUrl.searchParams.get("format");
   if (!z.string().uuid().safeParse(id).success || !["pdf", "docx"].includes(format ?? ""))
@@ -35,6 +39,12 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
       revisionId: revision.revisionId,
       format: format!,
       checksum: createHash("sha256").update(buffer).digest("hex"),
+    });
+    await recordProductEvent({
+      userId: user.id,
+      eventType: "ai_exported",
+      idempotencyKey: analyticsIdempotencyKey("ai_exported", `${id}:${revision.revisionId}:${format}`),
+      properties: { surface: "application_assistant" },
     });
     const slug =
       revision.title

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Badge, Button, EmptyState, FormField, Input, Select } from "@/components/ui";
 import { draftKinds, draftTones, type AssistantSourceFact } from "./types";
@@ -95,6 +95,8 @@ export function AssistantWorkspace({
   state?: AssistantState;
 }) {
   const [tab, setTab] = useState<"analyse" | "write">("write");
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
   const [summary] = useState(initial);
   const [applicationId, setApplicationId] = useState(applications[0]?.id ?? "");
   const [cvText, setCvText] = useState("");
@@ -302,6 +304,7 @@ export function AssistantWorkspace({
       <nav aria-label="Assistant tools" className="assistant-tabs">
         <button
           aria-current={tab === "analyse" ? "page" : undefined}
+          disabled={!hydrated}
           onClick={() => setTab("analyse")}
           type="button"
         >
@@ -309,6 +312,7 @@ export function AssistantWorkspace({
         </button>
         <button
           aria-current={tab === "write" ? "page" : undefined}
+          disabled={!hydrated}
           onClick={() => setTab("write")}
           type="button"
         >

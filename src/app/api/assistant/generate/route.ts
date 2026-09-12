@@ -3,11 +3,9 @@ import { generationRequestSchema } from "@/server/assistant/model";
 import { generateApplicationDraft } from "@/server/assistant/service";
 import { getCurrentUser, hasCurrentConsent } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
-import { InMemoryFixedWindowRateLimiter } from "@/server/security/rate-limit";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 import { getRequestIdentifier } from "@/server/security/request";
 import { BillingAccessError, requirePaidFeature } from "@/server/billing/service";
-
-const limiter = new InMemoryFixedWindowRateLimiter();
 
 const safeGenerationError = (code: string) => {
   if (code === "PROVIDER_DISABLED")
@@ -43,7 +41,10 @@ export async function POST(request: NextRequest) {
       { error: "AI processing consent is required before drafting." },
       { status: 403 },
     );
-  if (!limiter.check(`${user.id}:${getRequestIdentifier(request)}`, 8, 60_000).allowed)
+  if (
+    !(await consumeRateLimit("assistant.generate", `${user.id}:${getRequestIdentifier(request)}`, 8, 60_000))
+      .allowed
+  )
     return NextResponse.json(
       { error: "Too many writing requests. Wait a minute and try again." },
       { status: 429 },

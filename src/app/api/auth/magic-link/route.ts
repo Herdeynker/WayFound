@@ -5,7 +5,7 @@ import { emailSchema, issueMessages } from "@/server/auth/schemas";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
 
 export async function POST(request: NextRequest) {
-  const limited = rateLimitAuth(request, "magic-link");
+  const limited = await rateLimitAuth(request, "magic-link");
   if (limited) return limited;
   let body: unknown;
   try {

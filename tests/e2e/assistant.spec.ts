@@ -52,6 +52,7 @@ test.describe("Phase 10 CV and application assistant", () => {
     await expect(page.getByLabel("Tone", { exact: true })).toBeVisible();
     await expect(page.getByLabel("Word limit", { exact: true })).toBeVisible();
     const cvReview = page.getByRole("button", { name: "CV review" });
+    await expect(cvReview).toBeEnabled();
     await cvReview.focus();
     await expect(cvReview).toBeFocused();
     await cvReview.click();

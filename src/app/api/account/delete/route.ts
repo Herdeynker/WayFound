@@ -3,6 +3,7 @@ import { deletionConfirmationSchema } from "@/server/auth/schemas";
 import { getDeletionGraceDays } from "@/server/auth/constants";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
 import { getCurrentUser, recordAudit } from "@/server/auth/service";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 
 export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}));
@@ -16,6 +17,11 @@ export async function POST(request: NextRequest) {
   const client = createSupabaseRouteClient(request, response);
   const user = await getCurrentUser(client);
   if (!user) return NextResponse.json({ error: "Please sign in again." }, { status: 401 });
+  if (!(await consumeRateLimit("account.delete", user.id, 3, 24 * 60 * 60_000)).allowed)
+    return NextResponse.json(
+      { error: "A deletion request was recently handled. Please wait before retrying." },
+      { status: 429 },
+    );
   const grace = new Date(Date.now() + getDeletionGraceDays() * 86_400_000).toISOString();
   const { data: active } = await client
     .from("account_deletion_requests")

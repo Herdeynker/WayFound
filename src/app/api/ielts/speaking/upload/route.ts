@@ -5,10 +5,9 @@ import { getCurrentUser, hasCurrentConsent } from "@/server/auth/service";
 import { validateSpeakingAudio } from "@/server/ielts/model";
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
-import { InMemoryFixedWindowRateLimiter } from "@/server/security/rate-limit";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 import { getRequestIdentifier } from "@/server/security/request";
-
-const limiter = new InMemoryFixedWindowRateLimiter();
+import { quarantineScanAndPromote } from "@/server/security/upload-scan";
 
 export async function POST(request: NextRequest) {
   const cookieResponse = NextResponse.json({ ok: true });
@@ -21,7 +20,10 @@ export async function POST(request: NextRequest) {
       { error: "Document storage consent is required for a private recording." },
       { status: 403 },
     );
-  if (!limiter.check(`${user.id}:${getRequestIdentifier(request)}`, 6, 60_000).allowed)
+  if (
+    !(await consumeRateLimit("ielts.upload", `${user.id}:${getRequestIdentifier(request)}`, 6, 60_000))
+      .allowed
+  )
     return NextResponse.json(
       { error: "Too many recording uploads. Wait a minute and retry." },
       { status: 429 },
@@ -85,7 +87,7 @@ export async function POST(request: NextRequest) {
         user_id: user.id,
         document_type: "ielts_speaking_recording",
         category: "language",
-        readiness_status: "available",
+        readiness_status: "pending",
         original_filename: file.name.slice(0, 240),
         mime_type: validated.mime,
         size_bytes: file.size,
@@ -108,13 +110,24 @@ export async function POST(request: NextRequest) {
     .maybeSingle();
   const versionNumber = (latest.data?.version_number ?? 0) + 1;
   const path = `${user.id}/${parent.data.id}/${randomUUID()}${validated.extension}`;
-  const upload = await admin.storage
-    .from("user-documents")
-    .upload(path, bytes, { contentType: validated.mime, upsert: false });
-  if (upload.error)
+  const upload = await quarantineScanAndPromote({
+    userId: user.id,
+    purpose: "ielts_recording",
+    idempotencyKey: parsed.data.idempotencyKey,
+    bytes,
+    originalFilename: file.name,
+    contentType: validated.mime,
+    destinationPath: path,
+  });
+  if (!upload.ok)
     return NextResponse.json(
-      { error: "The recording upload was interrupted. Choose the file again to retry." },
-      { status: 502 },
+      {
+        error:
+          upload.reason === "infected"
+            ? "The recording did not pass the safety scan."
+            : "Recording scanning is unavailable. Nothing was stored.",
+      },
+      { status: upload.reason === "infected" ? 422 : 503 },
     );
   const version = await admin
     .from("document_versions")
@@ -161,7 +174,12 @@ export async function POST(request: NextRequest) {
   }
   const current = await admin
     .from("document_metadata")
-    .update({ current_version_id: version.data.id, storage_path: path, updated_at: new Date().toISOString() })
+    .update({
+      current_version_id: version.data.id,
+      storage_path: path,
+      readiness_status: "available",
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", parent.data.id);
   if (current.error) {
     await admin.from("ielts_speaking_recordings").delete().eq("id", recording.data.id).eq("user_id", user.id);

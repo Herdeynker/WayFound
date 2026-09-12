@@ -2411,6 +2411,98 @@ export type Database = {
           },
         ]
       }
+      document_scan_events: {
+        Row: {
+          category: string | null
+          id: number
+          occurred_at: string
+          scan_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          id?: never
+          occurred_at?: string
+          scan_id: string
+          status: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          id?: never
+          occurred_at?: string
+          scan_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_scan_events_scan_id_fkey"
+            columns: ["scan_id"]
+            isOneToOne: false
+            referencedRelation: "document_scan_records"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      document_scan_records: {
+        Row: {
+          checksum_sha256: string
+          content_type: string
+          created_at: string
+          failure_category: string | null
+          final_path: string | null
+          id: string
+          idempotency_key: string
+          original_filename: string
+          provider: string
+          purpose: string
+          quarantine_path: string
+          scanned_at: string | null
+          size_bytes: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          checksum_sha256: string
+          content_type: string
+          created_at?: string
+          failure_category?: string | null
+          final_path?: string | null
+          id?: string
+          idempotency_key: string
+          original_filename: string
+          provider: string
+          purpose: string
+          quarantine_path: string
+          scanned_at?: string | null
+          size_bytes: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          checksum_sha256?: string
+          content_type?: string
+          created_at?: string
+          failure_category?: string | null
+          final_path?: string | null
+          id?: string
+          idempotency_key?: string
+          original_filename?: string
+          provider?: string
+          purpose?: string
+          quarantine_path?: string
+          scanned_at?: string | null
+          size_bytes?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       document_versions: {
         Row: {
           checksum_sha256: string
@@ -5205,6 +5297,33 @@ export type Database = {
         }
         Relationships: []
       }
+      product_analytics_events: {
+        Row: {
+          event_type: string
+          id: string
+          idempotency_key: string
+          occurred_at: string
+          properties: Json
+          user_id: string | null
+        }
+        Insert: {
+          event_type: string
+          id?: string
+          idempotency_key: string
+          occurred_at?: string
+          properties?: Json
+          user_id?: string | null
+        }
+        Update: {
+          event_type?: string
+          id?: string
+          idempotency_key?: string
+          occurred_at?: string
+          properties?: Json
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profile_suggestions: {
         Row: {
           confirmed_at: string | null
@@ -5351,6 +5470,30 @@ export type Database = {
           id?: string
           is_active?: boolean
           rank?: number | null
+        }
+        Relationships: []
+      }
+      security_rate_limit_windows: {
+        Row: {
+          expires_at: string
+          request_count: number
+          scope: string
+          subject_hash: string
+          window_started_at: string
+        }
+        Insert: {
+          expires_at: string
+          request_count?: number
+          scope: string
+          subject_hash: string
+          window_started_at: string
+        }
+        Update: {
+          expires_at?: string
+          request_count?: number
+          scope?: string
+          subject_hash?: string
+          window_started_at?: string
         }
         Relationships: []
       }
@@ -6113,6 +6256,26 @@ export type Database = {
           candidate_elapsed_seconds: number
         }
         Returns: Json
+      }
+      phase14_consume_rate_limit: {
+        Args: {
+          candidate_scope: string
+          candidate_subject_hash: string
+          maximum_requests: number
+          window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          remaining: number
+          reset_at: string
+        }[]
+      }
+      phase14_purge_expired_operational_data: {
+        Args: { retention_days?: number }
+        Returns: {
+          analytics_deleted: number
+          rate_limits_deleted: number
+        }[]
       }
       phase4_valid_condition: { Args: { value: Json }; Returns: boolean }
       phase4_valid_normalized_value: { Args: { value: Json }; Returns: boolean }

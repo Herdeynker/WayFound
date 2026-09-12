@@ -2,6 +2,9 @@ import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
 import { getCurrentUser, hasCurrentConsent } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
+import { consumeRateLimit } from "@/server/security/rate-limit";
+import { getRequestIdentifier } from "@/server/security/request";
+import { quarantineScanAndPromote } from "@/server/security/upload-scan";
 
 const maxBytes = 10 * 1024 * 1024;
 const allowed = new Map([
@@ -26,6 +29,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Your session has expired. Please sign in again." }, { status: 401 });
   if (!(await hasCurrentConsent(client, user.id, "document_storage")))
     return NextResponse.json({ error: "Document storage consent is required." }, { status: 403 });
+  if (
+    !(await consumeRateLimit("passport.upload", `${user.id}:${getRequestIdentifier(request)}`, 10, 60_000))
+      .allowed
+  )
+    return NextResponse.json({ error: "Too many uploads. Wait a minute and retry." }, { status: 429 });
   const form = await request.formData();
   const file = form.get("file");
   const documentType = String(form.get("documentType") ?? "cv_resume");
@@ -41,11 +49,25 @@ export async function POST(request: NextRequest) {
       { status: 400 },
     );
   const path = `${user.id}/${randomUUID()}${extension}`;
-  const upload = await client.storage
-    .from("user-documents")
-    .upload(path, bytes, { contentType: file.type, upsert: false });
-  if (upload.error)
-    return NextResponse.json({ error: "The upload was interrupted. Please retry." }, { status: 502 });
+  const upload = await quarantineScanAndPromote({
+    userId: user.id,
+    purpose: "passport_document",
+    idempotencyKey: randomUUID(),
+    bytes,
+    originalFilename: file.name,
+    contentType: file.type,
+    destinationPath: path,
+  });
+  if (!upload.ok)
+    return NextResponse.json(
+      {
+        error:
+          upload.reason === "infected"
+            ? "The upload did not pass the safety scan."
+            : "Document scanning is unavailable. Nothing was stored.",
+      },
+      { status: upload.reason === "infected" ? 422 : 503 },
+    );
   const result = await client
     .from("document_metadata")
     .upsert(

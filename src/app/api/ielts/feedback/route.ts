@@ -2,12 +2,10 @@ import { NextResponse, type NextRequest } from "next/server";
 import { feedbackRequestSchema } from "@/features/ielts/model";
 import { getCurrentUser, hasCurrentConsent } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
-import { InMemoryFixedWindowRateLimiter } from "@/server/security/rate-limit";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 import { getRequestIdentifier } from "@/server/security/request";
 import { ProviderDisabledError } from "@/server/providers";
 import { createEstimatedFeedback } from "@/server/ielts/service";
-
-const limiter = new InMemoryFixedWindowRateLimiter();
 
 export async function POST(request: NextRequest) {
   const cookieResponse = NextResponse.json({ ok: true });
@@ -20,7 +18,10 @@ export async function POST(request: NextRequest) {
       { error: "AI processing consent is required for estimated feedback." },
       { status: 403 },
     );
-  if (!limiter.check(`${user.id}:${getRequestIdentifier(request)}`, 8, 60_000).allowed)
+  if (
+    !(await consumeRateLimit("ielts.feedback", `${user.id}:${getRequestIdentifier(request)}`, 8, 60_000))
+      .allowed
+  )
     return NextResponse.json(
       { error: "Too many feedback requests. Wait a minute and retry." },
       { status: 429 },

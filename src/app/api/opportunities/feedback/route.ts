@@ -1,6 +1,9 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { z } from "zod";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
+import { recordProductEvent } from "@/server/analytics";
+import { consumeRateLimit } from "@/server/security/rate-limit";
+import { getRequestIdentifier } from "@/server/security/request";
 
 const feedbackSchema = z
   .object({
@@ -24,6 +27,20 @@ export async function POST(request: NextRequest) {
     data: { user },
   } = await client.auth.getUser();
   if (!user) return NextResponse.json({ error: "Authentication is required." }, { status: 401 });
+  if (
+    !(
+      await consumeRateLimit(
+        "opportunities.feedback",
+        `${user.id}:${getRequestIdentifier(request)}`,
+        60,
+        60_000,
+      )
+    ).allowed
+  )
+    return NextResponse.json(
+      { error: "Too many feedback updates. Wait a minute and retry." },
+      { status: 429 },
+    );
   const parsed = feedbackSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid feedback request." }, { status: 400 });
   const result = await client.from("match_feedback_events").insert({
@@ -35,5 +52,12 @@ export async function POST(request: NextRequest) {
   });
   if (result.error?.code === "23505") return response;
   if (result.error) return NextResponse.json({ error: "We could not save that change." }, { status: 500 });
+  if (["match_saved", "match_useful"].includes(parsed.data.eventType))
+    await recordProductEvent({
+      userId: user.id,
+      eventType: parsed.data.eventType === "match_saved" ? "opportunity_saved" : "first_useful_match",
+      idempotencyKey: parsed.data.idempotencyKey,
+      properties: { surface: "opportunity_match" },
+    });
   return response;
 }

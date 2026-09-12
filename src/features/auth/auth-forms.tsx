@@ -159,6 +159,9 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           {mode === "login" ? "Create an account" : "Sign in"}
         </a>
       </p>
+      <p className="auth-legal">
+        By continuing, you acknowledge the <a href="/legal">terms, privacy notice and product disclaimer</a>.
+      </p>
     </div>
   );
 }

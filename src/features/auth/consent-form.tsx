@@ -61,7 +61,7 @@ export function ConsentForm() {
       </Button>
       <p className="consent-footnote">
         You can change optional alert preferences later. Earlier consent decisions remain recorded as a
-        versioned history.
+        versioned history. Read the <a href="/legal">privacy notice, terms and disclaimer</a>.
       </p>
     </form>
   );

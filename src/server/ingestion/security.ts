@@ -1,21 +1,55 @@
 import "server-only";
 
 import { createHash } from "node:crypto";
+import { lookup } from "node:dns/promises";
+import { isIP } from "node:net";
 import type { ErrorClassification, RetryDecision, SourcePolicy } from "./types";
 
-const privateIpv4 = /^(10\.|127\.|0\.|169\.254\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/;
 const forbiddenHost = /(^|\.)(localhost|local|internal|metadata\.google\.internal)$/i;
+
+export function isPublicNetworkAddress(address: string): boolean {
+  if (isIP(address) === 4) {
+    const [a, b] = address.split(".").map(Number);
+    return !(
+      a === 0 ||
+      a === 10 ||
+      a === 127 ||
+      (a === 100 && b >= 64 && b <= 127) ||
+      (a === 169 && b === 254) ||
+      (a === 172 && b >= 16 && b <= 31) ||
+      (a === 192 && (b === 0 || b === 168)) ||
+      (a === 198 && (b === 18 || b === 19)) ||
+      a >= 224
+    );
+  }
+  if (isIP(address) === 6) {
+    const normalized = address.toLowerCase();
+    if (normalized.startsWith("::ffff:")) return isPublicNetworkAddress(normalized.slice(7));
+    return /^[23][0-9a-f]{3}:/.test(normalized);
+  }
+  return false;
+}
 
 export function assertSafeSourceUrl(value: string, policy: Pick<SourcePolicy, "allowedDomains">): URL {
   const url = new URL(value);
   if (url.protocol !== "https:" || url.username || url.password || url.port)
     throw new Error("Unsafe source URL.");
   const host = url.hostname.toLowerCase();
-  if (forbiddenHost.test(host) || privateIpv4.test(host) || host.includes(":"))
+  if (forbiddenHost.test(host) || (isIP(host) > 0 && !isPublicNetworkAddress(host)))
     throw new Error("Unsafe source host.");
   const permitted = policy.allowedDomains.some((domain) => host === domain || host.endsWith(`.${domain}`));
   if (!permitted) throw new Error("Source URL is outside the registered allowlist.");
   return url;
+}
+
+export async function assertPublicSourceHost(
+  url: URL,
+  resolver: (hostname: string) => Promise<Array<{ address: string }>> = async (hostname) =>
+    lookup(hostname, { all: true }),
+): Promise<void> {
+  const addresses = await resolver(url.hostname);
+  if (addresses.length === 0 || addresses.some(({ address }) => !isPublicNetworkAddress(address)))
+    throw new Error("Unsafe source host resolution.");
 }
 
 export function safeResponseMetadata(response: Response, byteLength: number) {
@@ -32,9 +66,12 @@ export async function fetchRegisteredSource(input: {
   policy: SourcePolicy;
   url: string;
   signal?: AbortSignal;
+  resolver?: (hostname: string) => Promise<Array<{ address: string }>>;
 }) {
   let target = assertSafeSourceUrl(input.url, input.policy);
   for (let redirects = 0; redirects <= input.policy.redirectLimit; redirects += 1) {
+    if (process.env.NODE_ENV !== "test" || input.resolver)
+      await assertPublicSourceHost(target, input.resolver);
     const response = await fetch(target, {
       redirect: "manual",
       signal: input.signal ?? AbortSignal.timeout(input.policy.requestTimeoutMs),

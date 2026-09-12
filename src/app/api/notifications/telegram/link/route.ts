@@ -2,17 +2,15 @@ import { NextResponse, type NextRequest } from "next/server";
 import { parseServerEnvironment } from "@/lib/env/schema";
 import { getCurrentUser, hasCurrentConsent, recordAudit } from "@/server/auth/service";
 import { createTelegramLinkSecret, telegramLinkUrl } from "@/server/notifications/service";
-import { InMemoryFixedWindowRateLimiter } from "@/server/security/rate-limit";
+import { consumeRateLimit } from "@/server/security/rate-limit";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
-
-const limiter = new InMemoryFixedWindowRateLimiter();
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
   const client = createSupabaseRouteClient(request, response);
   const user = await getCurrentUser(client);
   if (!user) return NextResponse.json({ error: "Please sign in again." }, { status: 401 });
-  if (!limiter.check(`telegram-link:${user.id}`, 5, 60 * 60_000).allowed)
+  if (!(await consumeRateLimit("telegram.link", user.id, 5, 60 * 60_000)).allowed)
     return NextResponse.json({ error: "Please wait before creating another link." }, { status: 429 });
   if (!(await hasCurrentConsent(client, user.id, "telegram_notifications")))
     return NextResponse.json(
