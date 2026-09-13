@@ -16,6 +16,7 @@ import {
 } from "@/server/discovery/model";
 import { BraveSearchProvider } from "@/server/discovery/provider";
 import { DomainCircuitBreaker, ZeroCostQuotaLedger } from "@/server/discovery/quota";
+import { SupabaseDiscoveryStore } from "@/server/discovery/store";
 import {
   DiscoveryUnavailableError,
   runWebDiscovery,
@@ -84,7 +85,7 @@ class SearchStore implements AutonomousDiscoveryStore {
   }
   async saveSearchResults(input: { results: SearchResult[] }) {
     this.results = input.results;
-    return { created: input.results.length, duplicates: 0 };
+    return { created: input.results.length, duplicates: 0, rejected: 0 };
   }
   async failSearch(_queryId: string, _runId: string | null, code: string) {
     this.failure = code;
@@ -516,6 +517,74 @@ describe("Phase 15 Brave boundary", () => {
     const result = await provider.search("2027 official scholarship international applicants", 20);
     expect(result.results).toHaveLength(1);
     expect(result.providerRequestId).toBe("request-1");
+  });
+
+  it("drops provider records that cannot satisfy persisted hostname and text constraints", async () => {
+    const request = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            web: {
+              results: [
+                {
+                  title: "Unsafe\u0000 host",
+                  url: "https://invalid_host.example/opportunity",
+                  description: "Must never reach persistence.",
+                },
+                {
+                  title: "Official\u0000 scholarship",
+                  url: "https://official.example/scholarship",
+                  description: "Open\u0000 now",
+                },
+              ],
+            },
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+    );
+    const provider = new BraveSearchProvider("server-secret", request as typeof fetch);
+    const result = await provider.search("2027 official scholarship international applicants", 20);
+    expect(result.results).toEqual([
+      expect.objectContaining({
+        title: "Official scholarship",
+        snippet: "Open now",
+        url: "https://official.example/scholarship",
+      }),
+    ]);
+  });
+
+  it("rejects a malformed provider row without losing other valid search results", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({ data: null, error: { code: "23514" } })
+      .mockResolvedValueOnce({ data: [{ lead_id: crypto.randomUUID(), created: true }], error: null });
+    const updateResult = Promise.resolve({ data: null, error: null });
+    const client = {
+      rpc,
+      from: vi.fn(() => ({ update: vi.fn(() => ({ eq: vi.fn(() => updateResult) })) })),
+    };
+    const store = new SupabaseDiscoveryStore(client as never);
+    const result = await store.saveSearchResults({
+      searchRunId: crypto.randomUUID(),
+      queryId: crypto.randomUUID(),
+      now: new Date("2027-01-01T00:00:00Z"),
+      results: [
+        {
+          url: "https://invalid.example/one",
+          title: "Rejected by persistence",
+          snippet: "Internal only",
+          position: 1,
+        },
+        {
+          url: "https://official.example/two",
+          title: "Valid result",
+          snippet: "Internal only",
+          position: 2,
+        },
+      ],
+    });
+    expect(result).toEqual({ created: 1, duplicates: 0, rejected: 1 });
+    expect(rpc).toHaveBeenCalledTimes(2);
   });
 
   it("does not aggressively retry rate limits and reports disabled configuration honestly", async () => {

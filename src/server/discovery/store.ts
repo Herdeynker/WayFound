@@ -67,6 +67,8 @@ type PublishedRow = {
   created: boolean;
 };
 
+const providerDataErrorCodes = new Set(["22021", "22P05", "23514", "P0001"]);
+
 const assertResult = <T>(result: DbResult<T>, message: string): T => {
   if (result.error || result.data === null) throw new Error(message);
   return result.data;
@@ -161,8 +163,9 @@ export class SupabaseDiscoveryStore implements AutonomousDiscoveryStore {
     results: SearchResult[];
     providerRequestId?: string;
     now: Date;
-  }): Promise<{ created: number; duplicates: number }> {
+  }): Promise<{ created: number; duplicates: number; rejected: number }> {
     let created = 0;
+    let rejected = 0;
     for (const result of input.results) {
       const canonicalUrl = canonicalizeDiscoveryUrl(result.url);
       const domain = new URL(canonicalUrl).hostname;
@@ -180,7 +183,13 @@ export class SupabaseDiscoveryStore implements AutonomousDiscoveryStore {
         candidate_provider_result_id: result.providerResultId ?? null,
         candidate_fingerprint: fingerprint,
       })) as DbResult<Array<{ lead_id: string; created: boolean }>>;
-      if (saved.error) throw new Error("Discovery result could not be stored");
+      if (saved.error) {
+        if (saved.error.code && providerDataErrorCodes.has(saved.error.code)) {
+          rejected += 1;
+          continue;
+        }
+        throw new Error("Discovery result could not be stored");
+      }
       if (saved.data?.[0]?.created) created += 1;
     }
     const update = (await this.raw
@@ -188,7 +197,7 @@ export class SupabaseDiscoveryStore implements AutonomousDiscoveryStore {
       .update({ provider_request_id: input.providerRequestId ?? null })
       .eq("id", input.searchRunId)) as DbResult<unknown>;
     if (update.error) throw new Error("Search trace could not be updated");
-    return { created, duplicates: input.results.length - created };
+    return { created, duplicates: input.results.length - created - rejected, rejected };
   }
 
   async failSearch(queryId: string, searchRunId: string | null, code: string, retryable: boolean) {
@@ -224,7 +233,12 @@ export class SupabaseDiscoveryStore implements AutonomousDiscoveryStore {
     if (query.error) throw new Error("Discovery query failure could not be recorded");
   }
 
-  async finishSearch(queryId: string, searchRunId: string, resultCount: number): Promise<void> {
+  async finishSearch(
+    queryId: string,
+    searchRunId: string,
+    resultCount: number,
+    metrics?: { created: number; duplicates: number; rejected: number },
+  ): Promise<void> {
     const state = resultCount ? "succeeded" : "zero_results";
     const now = new Date().toISOString();
     const [run, query] = (await Promise.all([
@@ -237,6 +251,9 @@ export class SupabaseDiscoveryStore implements AutonomousDiscoveryStore {
         .update({
           status: state,
           result_count: resultCount,
+          useful_result_count: metrics?.created ?? 0,
+          duplicate_result_count: metrics?.duplicates ?? 0,
+          rejected_result_count: metrics?.rejected ?? 0,
           finished_at: now,
           lease_owner: null,
           lease_expires_at: null,

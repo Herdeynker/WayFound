@@ -88,7 +88,7 @@ class EndToEndStore implements AutonomousDiscoveryStore {
     return crypto.randomUUID();
   }
   async saveSearchResults() {
-    return { created: 0, duplicates: 0 };
+    return { created: 0, duplicates: 0, rejected: 0 };
   }
   async failSearch() {}
   async finishSearch() {}

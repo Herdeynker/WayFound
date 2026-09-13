@@ -215,9 +215,14 @@ export interface DiscoveryStore {
     results: SearchResult[];
     providerRequestId?: string;
     now: Date;
-  }): Promise<{ created: number; duplicates: number }>;
+  }): Promise<{ created: number; duplicates: number; rejected: number }>;
   failSearch(queryId: string, searchRunId: string | null, code: string, retryable: boolean): Promise<void>;
-  finishSearch(queryId: string, searchRunId: string, resultCount: number): Promise<void>;
+  finishSearch(
+    queryId: string,
+    searchRunId: string,
+    resultCount: number,
+    metrics?: { created: number; duplicates: number; rejected: number },
+  ): Promise<void>;
 }
 
 export type ClaimedLead = {

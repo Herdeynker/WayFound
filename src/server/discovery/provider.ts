@@ -25,6 +25,8 @@ const braveResponseSchema = z
   })
   .passthrough();
 
+const stripUnsupportedText = (value: string) => value.replaceAll("\u0000", "");
+
 export class SearchProviderError extends Error {
   constructor(
     readonly code:
@@ -90,14 +92,19 @@ export class BraveSearchProvider implements SearchProvider {
     if (!parsed.success) throw new SearchProviderError("invalid_response", false);
     const results = (parsed.data.web?.results ?? []).slice(0, resultCount).flatMap((item, index) => {
       try {
+        const canonicalUrl = canonicalizeDiscoveryUrl(item.url);
+        const hostname = new URL(canonicalUrl).hostname;
+        if (!/^[a-z0-9.-]{1,253}$/.test(hostname)) return [];
         return [
           searchResultSchema.parse({
-            url: canonicalizeDiscoveryUrl(item.url),
-            title: item.title.slice(0, 500),
-            snippet: (item.description ?? "").slice(0, 1000),
+            url: canonicalUrl,
+            title: stripUnsupportedText(item.title).slice(0, 500),
+            snippet: stripUnsupportedText(item.description ?? "").slice(0, 1000),
             position: index + 1,
             language: /^[a-z]{2,3}(-[A-Z]{2})?$/.test(item.language ?? "") ? item.language : undefined,
-            providerResultId: item.profile?.long_name?.slice(0, 240),
+            providerResultId: item.profile?.long_name
+              ? stripUnsupportedText(item.profile.long_name).slice(0, 240)
+              : undefined,
           }),
         ];
       } catch {

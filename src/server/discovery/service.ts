@@ -108,12 +108,13 @@ export async function runWebDiscovery(input: {
       providerRequestId: response.providerRequestId,
       now,
     });
-    await input.store.finishSearch(query.id, searchRunId, response.results.length);
+    await input.store.finishSearch(query.id, searchRunId, response.results.length, saved);
     return {
       status: response.results.length ? ("completed" as const) : ("zero_results" as const),
       searches: 1,
       leads: saved.created,
       duplicates: saved.duplicates,
+      rejected: saved.rejected,
       quota: {
         dailyRemaining: quota.dailyRemaining,
         monthlyRemaining: quota.monthlyRemaining,
