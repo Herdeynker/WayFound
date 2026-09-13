@@ -13,7 +13,7 @@ This matrix prevents scope loss. IDs are stable; implementation may add subrequi
 | WF-A11Y-01 | WCAG-oriented semantics, focus, contrast and 44px targets         |   All | Automated and manual checks                |
 | WF-ID-01   | Email/password, magic link, Google, recovery and protected routes |     2 | Auth integration/E2E tests                 |
 | WF-ID-02   | Versioned consent, export and deletion                            | 2, 14 | DB/job/audit tests                         |
-| WF-SEC-01  | User-owned data isolated by RLS/storage policy                    |  2–14 | User A/B policy tests                      |
+| WF-SEC-01  | User-owned data isolated by RLS/storage policy                    |  2–15 | User A/B policy tests                      |
 | WF-PAS-01  | Multi-goal conditional Opportunity Passport                       |     3 | Persona E2E tests                          |
 | WF-PAS-02  | Autosave/resume/completion/version snapshots                      |     3 | Integration tests                          |
 | WF-PAS-03  | CV proposals require confirmation                                 |     3 | UI/unit tests                              |
@@ -49,7 +49,12 @@ This matrix prevents scope loss. IDs are stable; implementation may add subrequi
 | WF-SCP-01  | No landing page in Phases 0–14                                    |  0–14 | Route/diff scope audit                     |
 | WF-SCP-02  | No automatic final application submission in beta                 |  0–19 | Capability/scope audit                     |
 | WF-SCP-03  | No legal advice or guaranteed outcome claims                      |   All | Copy/content audit                         |
-| WF-POST-01 | Advanced IELTS only after beta prioritization                     |    15 | Approval and phase gate                    |
+| WF-DIS-01  | Autonomous web discovery without founder upload dependency        |    15 | Deterministic end-to-end and scheduler tests |
+| WF-DIS-02  | Atomic free-tier quota; no automatic paid overage                 |    15 | Concurrency, UTC-window and config tests   |
+| WF-DIS-03  | Nine-country/seven-type adaptive query coverage                   |    15 | Catalog and rotation tests                 |
+| WF-DIS-04  | Private leads, verified original sources and native monitoring     |    15 | Hosted RLS/source-resolution tests         |
+| WF-DIS-05  | Evidence, dedupe, confidence, publication, matching and alerts     |    15 | Hosted/deterministic pipeline tests        |
+| WF-POST-01 | Advanced IELTS remains future unscheduled scope                   | Future | New product-owner approval                 |
 | WF-POST-02 | Interview Studio with secure media and no prediction              |    16 | Security/rubric tests                      |
 | WF-POST-03 | Sourced, dated credential roadmaps                                |    17 | Evidence/freshness audit                   |
 | WF-POST-04 | Abuse-resistant referral/partner ledger                           |    18 | Isolation/idempotency tests                |

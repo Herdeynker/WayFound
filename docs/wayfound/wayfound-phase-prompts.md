@@ -162,10 +162,10 @@ Perform and document a threat model for auth, RLS/storage, AI prompt injection, 
 Optimize images/fonts/queries/bundles, test throttled mobile network and interrupted operations, run accessibility and responsive visual audits against references, and validate analytics without sensitive payloads. Build Playwright coverage of the entire beta journey and an operational dashboard/runbook for ingestion freshness, extraction errors, notification delivery, payment reconciliation and provider cost. Remove fake metrics, testimonials, unsupported eligibility and unsafe fixtures from production. Produce a signed-off launch checklist; do not declare launch-ready while any critical/high issue or legal-text placeholder remains.
 ```
 
-## Phase 15 — Advanced IELTS (post-beta)
+## Phase 15 — Zero-Cost Autonomous Global Opportunity Discovery
 
 ```text
-Implement WAYFOUND Phase 15 only after paid-beta evidence prioritizes it: advanced IELTS. Apply the Common Contract. Add original/licensed listening mocks with original audio, expanded governed question bank, adaptive/spaced study plan and improved fluency/pronunciation feedback. Preserve provenance and unofficial-estimate labels. Add content QA, accessibility transcripts and mobile audio resilience. Do not import copyrighted past papers.
+Implement the product-owner-approved autonomous production supply model. Apply the Common Contract. WAYFOUND must find opportunities without routine founder uploads: use provider-neutral server-only Brave broad discovery under atomic 25/day and 750/month ceilings, no paid overage, rotating coverage of all nine destinations and seven types, private leads, registry-based original-source resolution, Phase 5 safe native retrieval, strict evidence-backed extraction, deduplication, Phase 6 confidence/publication controls, Phase 7 matching, Phase 11 notifications and lifecycle rechecks. Monitor verified official sources directly without consuming Brave calls. New domains remain unverified; snippets and secondary-only content never become primary evidence. Keep jobs authenticated, bounded, leased, idempotent and disabled until securely configured. Document honest provider-disabled behavior and do not claim a live pilot without a key. Do not implement Phase 16 or advanced IELTS in this phase.
 ```
 
 ## Phase 16 — Interview Studio (post-beta)

@@ -4764,6 +4764,211 @@ export type Database = {
           },
         ]
       }
+      opportunity_deduplication_decisions: {
+        Row: {
+          decided_at: string
+          decision: string
+          decision_fingerprint: string
+          id: string
+          lead_id: string
+          match_basis: string
+          opportunity_id: string | null
+          safe_reason: string
+        }
+        Insert: {
+          decided_at?: string
+          decision: string
+          decision_fingerprint: string
+          id?: string
+          lead_id: string
+          match_basis: string
+          opportunity_id?: string | null
+          safe_reason: string
+        }
+        Update: {
+          decided_at?: string
+          decision?: string
+          decision_fingerprint?: string
+          id?: string
+          lead_id?: string
+          match_basis?: string
+          opportunity_id?: string | null
+          safe_reason?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_deduplication_decisions_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_discovery_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_deduplication_decisions_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_deduplication_decisions_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_discovery_jobs: {
+        Row: {
+          attempt_count: number
+          available_at: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          idempotency_key: string
+          lease_expires_at: string | null
+          lease_owner: string | null
+          maximum_attempts: number
+          payload: Json
+          priority: number
+          safe_error_code: string | null
+          stage: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempt_count?: number
+          available_at?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key: string
+          lease_expires_at?: string | null
+          lease_owner?: string | null
+          maximum_attempts?: number
+          payload?: Json
+          priority?: number
+          safe_error_code?: string | null
+          stage: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempt_count?: number
+          available_at?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          idempotency_key?: string
+          lease_expires_at?: string | null
+          lease_owner?: string | null
+          maximum_attempts?: number
+          payload?: Json
+          priority?: number
+          safe_error_code?: string | null
+          stage?: string
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      opportunity_discovery_leads: {
+        Row: {
+          bounded_snippet: string
+          canonical_url: string
+          content_language: string | null
+          created_at: string
+          first_discovered_at: string
+          id: string
+          idempotency_fingerprint: string
+          last_discovered_at: string
+          lease_expires_at: string | null
+          lease_owner: string | null
+          next_retry_at: string | null
+          processing_status: string
+          provider: string
+          provider_result_id: string | null
+          query_id: string | null
+          result_domain: string
+          result_position: number
+          result_title: string
+          result_url: string
+          retry_count: number
+          safe_rejection_reason: string | null
+          search_run_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          bounded_snippet?: string
+          canonical_url: string
+          content_language?: string | null
+          created_at?: string
+          first_discovered_at?: string
+          id?: string
+          idempotency_fingerprint: string
+          last_discovered_at?: string
+          lease_expires_at?: string | null
+          lease_owner?: string | null
+          next_retry_at?: string | null
+          processing_status?: string
+          provider: string
+          provider_result_id?: string | null
+          query_id?: string | null
+          result_domain: string
+          result_position: number
+          result_title: string
+          result_url: string
+          retry_count?: number
+          safe_rejection_reason?: string | null
+          search_run_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bounded_snippet?: string
+          canonical_url?: string
+          content_language?: string | null
+          created_at?: string
+          first_discovered_at?: string
+          id?: string
+          idempotency_fingerprint?: string
+          last_discovered_at?: string
+          lease_expires_at?: string | null
+          lease_owner?: string | null
+          next_retry_at?: string | null
+          processing_status?: string
+          provider?: string
+          provider_result_id?: string | null
+          query_id?: string | null
+          result_domain?: string
+          result_position?: number
+          result_title?: string
+          result_url?: string
+          retry_count?: number
+          safe_rejection_reason?: string | null
+          search_run_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_discovery_leads_query_id_fkey"
+            columns: ["query_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_generated_queries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_discovery_leads_search_run_id_fkey"
+            columns: ["search_run_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_search_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunity_documents: {
         Row: {
           applicability_condition: Json
@@ -4824,6 +5029,56 @@ export type Database = {
             columns: ["opportunity_id"]
             isOneToOne: false
             referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_domain_discovery_status: {
+        Row: {
+          created_at: string
+          domain: string
+          first_seen_at: string
+          last_seen_at: string
+          lead_count: number
+          rejection_count: number
+          safe_decision_basis: string
+          source_id: string | null
+          updated_at: string
+          useful_count: number
+          verification_status: string
+        }
+        Insert: {
+          created_at?: string
+          domain: string
+          first_seen_at?: string
+          last_seen_at?: string
+          lead_count?: number
+          rejection_count?: number
+          safe_decision_basis?: string
+          source_id?: string | null
+          updated_at?: string
+          useful_count?: number
+          verification_status?: string
+        }
+        Update: {
+          created_at?: string
+          domain?: string
+          first_seen_at?: string
+          last_seen_at?: string
+          lead_count?: number
+          rejection_count?: number
+          safe_decision_basis?: string
+          source_id?: string | null
+          updated_at?: string
+          useful_count?: number
+          verification_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_domain_discovery_status_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "source_registry"
             referencedColumns: ["id"]
           },
         ]
@@ -4976,6 +5231,357 @@ export type Database = {
           },
         ]
       }
+      opportunity_extraction_attempts: {
+        Row: {
+          evidence_fragment_count: number
+          explicit_fact_count: number
+          extracted_at: string
+          extraction_method: string
+          id: string
+          lead_id: string
+          model_identifier: string | null
+          opportunity_id: string | null
+          prompt_version: string | null
+          retrieval_attempt_id: string | null
+          safe_error_code: string | null
+          schema_version: string
+          status: string
+          unknown_fact_count: number
+        }
+        Insert: {
+          evidence_fragment_count?: number
+          explicit_fact_count?: number
+          extracted_at?: string
+          extraction_method: string
+          id?: string
+          lead_id: string
+          model_identifier?: string | null
+          opportunity_id?: string | null
+          prompt_version?: string | null
+          retrieval_attempt_id?: string | null
+          safe_error_code?: string | null
+          schema_version: string
+          status: string
+          unknown_fact_count?: number
+        }
+        Update: {
+          evidence_fragment_count?: number
+          explicit_fact_count?: number
+          extracted_at?: string
+          extraction_method?: string
+          id?: string
+          lead_id?: string
+          model_identifier?: string | null
+          opportunity_id?: string | null
+          prompt_version?: string | null
+          retrieval_attempt_id?: string | null
+          safe_error_code?: string | null
+          schema_version?: string
+          status?: string
+          unknown_fact_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_extraction_attempts_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_discovery_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_extraction_attempts_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_extraction_attempts_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_extraction_attempts_retrieval_attempt_id_fkey"
+            columns: ["retrieval_attempt_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_retrieval_attempts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_generated_queries: {
+        Row: {
+          attempt_count: number
+          created_at: string
+          duplicate_result_count: number
+          finished_at: string | null
+          id: string
+          lease_expires_at: string | null
+          lease_owner: string | null
+          next_attempt_at: string
+          provider: string
+          query_fingerprint: string
+          query_text: string
+          rejected_result_count: number
+          result_count: number
+          safe_error_code: string | null
+          scheduled_for: string
+          started_at: string | null
+          status: string
+          template_id: string
+          updated_at: string
+          useful_result_count: number
+        }
+        Insert: {
+          attempt_count?: number
+          created_at?: string
+          duplicate_result_count?: number
+          finished_at?: string | null
+          id?: string
+          lease_expires_at?: string | null
+          lease_owner?: string | null
+          next_attempt_at?: string
+          provider?: string
+          query_fingerprint: string
+          query_text: string
+          rejected_result_count?: number
+          result_count?: number
+          safe_error_code?: string | null
+          scheduled_for: string
+          started_at?: string | null
+          status?: string
+          template_id: string
+          updated_at?: string
+          useful_result_count?: number
+        }
+        Update: {
+          attempt_count?: number
+          created_at?: string
+          duplicate_result_count?: number
+          finished_at?: string | null
+          id?: string
+          lease_expires_at?: string | null
+          lease_owner?: string | null
+          next_attempt_at?: string
+          provider?: string
+          query_fingerprint?: string
+          query_text?: string
+          rejected_result_count?: number
+          result_count?: number
+          safe_error_code?: string | null
+          scheduled_for?: string
+          started_at?: string | null
+          status?: string
+          template_id?: string
+          updated_at?: string
+          useful_result_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_generated_queries_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_query_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_provider_usage_windows: {
+        Row: {
+          created_at: string
+          estimated_cost_microusd: number
+          hard_limit: number
+          id: string
+          provider: string
+          request_count: number
+          updated_at: string
+          window_end: string
+          window_kind: string
+          window_start: string
+        }
+        Insert: {
+          created_at?: string
+          estimated_cost_microusd?: number
+          hard_limit: number
+          id?: string
+          provider: string
+          request_count?: number
+          updated_at?: string
+          window_end: string
+          window_kind: string
+          window_start: string
+        }
+        Update: {
+          created_at?: string
+          estimated_cost_microusd?: number
+          hard_limit?: number
+          id?: string
+          provider?: string
+          request_count?: number
+          updated_at?: string
+          window_end?: string
+          window_kind?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      opportunity_query_templates: {
+        Row: {
+          active: boolean
+          budget_group: string
+          created_at: string
+          destination_country_code: string
+          id: string
+          last_generated_at: string | null
+          opportunity_type_code: string
+          origin_country_code: string
+          priority_weight: number
+          query_pattern: string
+          template_key: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          budget_group: string
+          created_at?: string
+          destination_country_code: string
+          id?: string
+          last_generated_at?: string | null
+          opportunity_type_code: string
+          origin_country_code: string
+          priority_weight?: number
+          query_pattern: string
+          template_key: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          budget_group?: string
+          created_at?: string
+          destination_country_code?: string
+          id?: string
+          last_generated_at?: string | null
+          opportunity_type_code?: string
+          origin_country_code?: string
+          priority_weight?: number
+          query_pattern?: string
+          template_key?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_query_templates_destination_country_code_fkey"
+            columns: ["destination_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["iso_alpha2"]
+          },
+          {
+            foreignKeyName: "opportunity_query_templates_destination_country_code_fkey"
+            columns: ["destination_country_code"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["destination_country_code"]
+          },
+          {
+            foreignKeyName: "opportunity_query_templates_opportunity_type_code_fkey"
+            columns: ["opportunity_type_code"]
+            isOneToOne: false
+            referencedRelation: "opportunity_types"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "opportunity_query_templates_opportunity_type_code_fkey"
+            columns: ["opportunity_type_code"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["opportunity_type_code"]
+          },
+          {
+            foreignKeyName: "opportunity_query_templates_origin_country_code_fkey"
+            columns: ["origin_country_code"]
+            isOneToOne: false
+            referencedRelation: "countries"
+            referencedColumns: ["iso_alpha2"]
+          },
+          {
+            foreignKeyName: "opportunity_query_templates_origin_country_code_fkey"
+            columns: ["origin_country_code"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["destination_country_code"]
+          },
+        ]
+      }
+      opportunity_recheck_schedules: {
+        Row: {
+          cadence_hours: number
+          consecutive_failure_count: number
+          created_at: string
+          last_checked_at: string | null
+          last_outcome: string | null
+          lease_expires_at: string | null
+          lease_owner: string | null
+          next_check_at: string
+          opportunity_id: string
+          source_id: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          cadence_hours: number
+          consecutive_failure_count?: number
+          created_at?: string
+          last_checked_at?: string | null
+          last_outcome?: string | null
+          lease_expires_at?: string | null
+          lease_owner?: string | null
+          next_check_at: string
+          opportunity_id: string
+          source_id: string
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          cadence_hours?: number
+          consecutive_failure_count?: number
+          created_at?: string
+          last_checked_at?: string | null
+          last_outcome?: string | null
+          lease_expires_at?: string | null
+          lease_owner?: string | null
+          next_check_at?: string
+          opportunity_id?: string
+          source_id?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_recheck_schedules_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: true
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_recheck_schedules_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: true
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_recheck_schedules_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunity_requirements: {
         Row: {
           applicability_condition: Json
@@ -5045,6 +5651,185 @@ export type Database = {
             columns: ["opportunity_id"]
             isOneToOne: false
             referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_retrieval_attempts: {
+        Row: {
+          byte_length: number | null
+          content_hash: string | null
+          content_type: string | null
+          etag: string | null
+          final_url: string | null
+          id: string
+          last_modified: string | null
+          lead_id: string
+          request_url: string
+          retrieval_method: string
+          retrieved_at: string
+          safe_error_code: string | null
+          source_id: string | null
+          status: string
+          status_code: number | null
+        }
+        Insert: {
+          byte_length?: number | null
+          content_hash?: string | null
+          content_type?: string | null
+          etag?: string | null
+          final_url?: string | null
+          id?: string
+          last_modified?: string | null
+          lead_id: string
+          request_url: string
+          retrieval_method: string
+          retrieved_at?: string
+          safe_error_code?: string | null
+          source_id?: string | null
+          status: string
+          status_code?: number | null
+        }
+        Update: {
+          byte_length?: number | null
+          content_hash?: string | null
+          content_type?: string | null
+          etag?: string | null
+          final_url?: string | null
+          id?: string
+          last_modified?: string | null
+          lead_id?: string
+          request_url?: string
+          retrieval_method?: string
+          retrieved_at?: string
+          safe_error_code?: string | null
+          source_id?: string | null
+          status?: string
+          status_code?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_retrieval_attempts_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_discovery_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_retrieval_attempts_source_id_fkey"
+            columns: ["source_id"]
+            isOneToOne: false
+            referencedRelation: "source_registry"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_search_runs: {
+        Row: {
+          estimated_cost_microusd: number
+          finished_at: string | null
+          id: string
+          provider: string
+          provider_request_id: string | null
+          query_id: string
+          quota_day: string
+          quota_month: string
+          requested_result_count: number
+          returned_result_count: number
+          safe_error_code: string | null
+          started_at: string
+          state: string
+        }
+        Insert: {
+          estimated_cost_microusd?: number
+          finished_at?: string | null
+          id?: string
+          provider: string
+          provider_request_id?: string | null
+          query_id: string
+          quota_day: string
+          quota_month: string
+          requested_result_count: number
+          returned_result_count?: number
+          safe_error_code?: string | null
+          started_at?: string
+          state?: string
+        }
+        Update: {
+          estimated_cost_microusd?: number
+          finished_at?: string | null
+          id?: string
+          provider?: string
+          provider_request_id?: string | null
+          query_id?: string
+          quota_day?: string
+          quota_month?: string
+          requested_result_count?: number
+          returned_result_count?: number
+          safe_error_code?: string | null
+          started_at?: string
+          state?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_search_runs_query_id_fkey"
+            columns: ["query_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_generated_queries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      opportunity_source_resolution_attempts: {
+        Row: {
+          attempted_at: string
+          candidate_url: string
+          id: string
+          lead_id: string
+          redirect_count: number
+          resolved_source_id: string | null
+          resolved_url: string | null
+          safe_reason: string | null
+          source_strength: string
+          status: string
+        }
+        Insert: {
+          attempted_at?: string
+          candidate_url: string
+          id?: string
+          lead_id: string
+          redirect_count?: number
+          resolved_source_id?: string | null
+          resolved_url?: string | null
+          safe_reason?: string | null
+          source_strength: string
+          status: string
+        }
+        Update: {
+          attempted_at?: string
+          candidate_url?: string
+          id?: string
+          lead_id?: string
+          redirect_count?: number
+          resolved_source_id?: string | null
+          resolved_url?: string | null
+          safe_reason?: string | null
+          source_strength?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_source_resolution_attempts_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "opportunity_discovery_leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_source_resolution_attempts_resolved_source_id_fkey"
+            columns: ["resolved_source_id"]
+            isOneToOne: false
+            referencedRelation: "source_registry"
             referencedColumns: ["id"]
           },
         ]
@@ -5532,9 +6317,11 @@ export type Database = {
           allowed_domains: string[]
           base_url: string
           canonical_domain: string
+          circuit_open_until: string | null
           concurrency_limit: number
           consecutive_failure_count: number
           country_id: string | null
+          crawl_delay_ms: number
           crawl_policy_notes: string
           created_at: string
           discovery_method: string
@@ -5543,8 +6330,13 @@ export type Database = {
           is_allowed: boolean
           is_fixture: boolean
           is_official_source: boolean
+          last_content_hash: string | null
+          last_etag: string | null
           last_failed_check_at: string | null
+          last_modified_header: string | null
+          last_monitor_attempt_at: string | null
           last_successful_check_at: string | null
+          monitoring_method: string | null
           next_eligible_run_at: string | null
           parser_adapter_identifier: string | null
           redirect_limit: number
@@ -5566,9 +6358,11 @@ export type Database = {
           allowed_domains?: string[]
           base_url: string
           canonical_domain: string
+          circuit_open_until?: string | null
           concurrency_limit?: number
           consecutive_failure_count?: number
           country_id?: string | null
+          crawl_delay_ms?: number
           crawl_policy_notes?: string
           created_at?: string
           discovery_method?: string
@@ -5577,8 +6371,13 @@ export type Database = {
           is_allowed?: boolean
           is_fixture?: boolean
           is_official_source?: boolean
+          last_content_hash?: string | null
+          last_etag?: string | null
           last_failed_check_at?: string | null
+          last_modified_header?: string | null
+          last_monitor_attempt_at?: string | null
           last_successful_check_at?: string | null
+          monitoring_method?: string | null
           next_eligible_run_at?: string | null
           parser_adapter_identifier?: string | null
           redirect_limit?: number
@@ -5600,9 +6399,11 @@ export type Database = {
           allowed_domains?: string[]
           base_url?: string
           canonical_domain?: string
+          circuit_open_until?: string | null
           concurrency_limit?: number
           consecutive_failure_count?: number
           country_id?: string | null
+          crawl_delay_ms?: number
           crawl_policy_notes?: string
           created_at?: string
           discovery_method?: string
@@ -5611,8 +6412,13 @@ export type Database = {
           is_allowed?: boolean
           is_fixture?: boolean
           is_official_source?: boolean
+          last_content_hash?: string | null
+          last_etag?: string | null
           last_failed_check_at?: string | null
+          last_modified_header?: string | null
+          last_monitor_attempt_at?: string | null
           last_successful_check_at?: string | null
+          monitoring_method?: string | null
           next_eligible_run_at?: string | null
           parser_adapter_identifier?: string | null
           redirect_limit?: number
@@ -5999,6 +6805,24 @@ export type Database = {
       }
     }
     Views: {
+      phase15_discovery_operations_summary: {
+        Row: {
+          daily_limit: number | null
+          duplicates_last_24_hours: number | null
+          extraction_failures_last_24_hours: number | null
+          last_successful_end_to_end_at: string | null
+          lead_backlog: number | null
+          leads_last_24_hours: number | null
+          monthly_limit: number | null
+          published_last_24_hours: number | null
+          rejected_last_24_hours: number | null
+          retrieval_failures_last_24_hours: number | null
+          searches_this_month: number | null
+          searches_today: number | null
+          unverified_domains: number | null
+        }
+        Relationships: []
+      }
       safe_active_ielts_content: {
         Row: {
           activity_kind: string | null
@@ -6277,6 +7101,197 @@ export type Database = {
           rate_limits_deleted: number
         }[]
       }
+      phase15_claim_discovery_jobs: {
+        Args: {
+          candidate_batch_size?: number
+          candidate_stage: string
+          candidate_worker: string
+          lease_seconds?: number
+        }
+        Returns: {
+          attempt_count: number
+          available_at: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          idempotency_key: string
+          lease_expires_at: string | null
+          lease_owner: string | null
+          maximum_attempts: number
+          payload: Json
+          priority: number
+          safe_error_code: string | null
+          stage: string
+          started_at: string | null
+          status: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "opportunity_discovery_jobs"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      phase15_claim_discovery_lead: {
+        Args: {
+          candidate_batch_size?: number
+          candidate_worker: string
+          lease_seconds?: number
+        }
+        Returns: {
+          bounded_snippet: string
+          canonical_url: string
+          content_language: string | null
+          created_at: string
+          first_discovered_at: string
+          id: string
+          idempotency_fingerprint: string
+          last_discovered_at: string
+          lease_expires_at: string | null
+          lease_owner: string | null
+          next_retry_at: string | null
+          processing_status: string
+          provider: string
+          provider_result_id: string | null
+          query_id: string | null
+          result_domain: string
+          result_position: number
+          result_title: string
+          result_url: string
+          retry_count: number
+          safe_rejection_reason: string | null
+          search_run_id: string | null
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "opportunity_discovery_leads"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      phase15_claim_generated_query: {
+        Args: { candidate_worker: string; lease_seconds?: number }
+        Returns: {
+          attempt_count: number
+          created_at: string
+          duplicate_result_count: number
+          finished_at: string | null
+          id: string
+          lease_expires_at: string | null
+          lease_owner: string | null
+          next_attempt_at: string
+          provider: string
+          query_fingerprint: string
+          query_text: string
+          rejected_result_count: number
+          result_count: number
+          safe_error_code: string | null
+          scheduled_for: string
+          started_at: string | null
+          status: string
+          template_id: string
+          updated_at: string
+          useful_result_count: number
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "opportunity_generated_queries"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
+      phase15_cleanup_terminal_jobs: {
+        Args: { retention_days?: number }
+        Returns: number
+      }
+      phase15_consume_search_quota: {
+        Args: {
+          candidate_daily_limit: number
+          candidate_monthly_limit: number
+          candidate_provider: string
+          requested_calls?: number
+        }
+        Returns: {
+          allowed: boolean
+          daily_remaining: number
+          daily_used: number
+          monthly_remaining: number
+          monthly_used: number
+        }[]
+      }
+      phase15_finish_discovery_job: {
+        Args: {
+          candidate_error_code?: string
+          candidate_job: string
+          candidate_status: string
+          candidate_worker: string
+          retry_after_seconds?: number
+        }
+        Returns: boolean
+      }
+      phase15_publish_candidate: {
+        Args: {
+          candidate_application_url: string
+          candidate_canonical_url: string
+          candidate_content_hash: string
+          candidate_deadline: string
+          candidate_decision_fingerprint: string
+          candidate_destination_code: string
+          candidate_duplicate_key: string
+          candidate_evidence_excerpt: string
+          candidate_funding: string
+          candidate_is_global: boolean
+          candidate_lead: string
+          candidate_normalized_title: string
+          candidate_organization: string
+          candidate_rolling: boolean
+          candidate_source: string
+          candidate_sponsorship: string
+          candidate_summary: string
+          candidate_title: string
+          candidate_type_code: string
+        }
+        Returns: {
+          confidence_assessment_id: string
+          created: boolean
+          opportunity_id: string
+          opportunity_version_id: string
+        }[]
+      }
+      phase15_record_direct_source_lead: {
+        Args: {
+          candidate_fingerprint: string
+          candidate_source: string
+          candidate_title: string
+          candidate_url: string
+        }
+        Returns: {
+          created: boolean
+          lead_id: string
+        }[]
+      }
+      phase15_record_discovery_lead: {
+        Args: {
+          candidate_canonical_url: string
+          candidate_domain: string
+          candidate_fingerprint: string
+          candidate_language: string
+          candidate_position: number
+          candidate_provider_result_id: string
+          candidate_query: string
+          candidate_result_url: string
+          candidate_search_run: string
+          candidate_snippet: string
+          candidate_title: string
+        }
+        Returns: {
+          created: boolean
+          lead_id: string
+        }[]
+      }
+      phase15_url_host: { Args: { candidate_url: string }; Returns: string }
       phase4_valid_condition: { Args: { value: Json }; Returns: boolean }
       phase4_valid_normalized_value: { Args: { value: Json }; Returns: boolean }
       phase5_acquire_source_lease: {

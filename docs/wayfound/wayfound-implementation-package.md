@@ -50,6 +50,7 @@ Codex must report a conflict instead of silently choosing or inventing a require
 - Destinations are global and include China, the UK, Canada, Australia, Germany, Ireland, the Netherlands, the US and New Zealand.
 - Opportunity types include scholarships, fellowships, graduate programmes, research roles, internships, sponsored professional jobs and sponsored skilled/trade work.
 - No manual opportunity approval. Automated confidence, provenance, freshness, duplicate and sponsorship checks are required.
+- Production opportunity supply is autonomous: rotating Brave discovery plus direct monitoring of verified official sources. Search is server-only, capped at 25 UTC-day/750 calendar-month calls with no paid overage, and no routine founder upload is required.
 - No automatic final submission in beta. Users review and perform declarations/submission.
 - IELTS content must be original or properly licensed. Practice scores are estimates, never represented as official IELTS scores.
 - Every included workflow must be fully usable on mobile in the same phase it is introduced.
@@ -61,7 +62,7 @@ These must not block foundational development and must not be fabricated:
 
 - Payment provider: implement an interface; select Paystack or another compatible provider before Phase 12 production wiring.
 - AI provider/model: use an internal structured-output interface; Gemini may be the initial adapter.
-- Search providers and source list: configured source registry, not hard-coded claims of exhaustive coverage.
+- Source list remains registry-configured and never claims exhaustive coverage. The product-owner selected Brave as the initial broad-search provider; the interface remains provider-neutral and disabled until a server-only key and authenticated schedules are configured.
 - Exact prices, usage quotas and plan names: database/configuration values approved before launch.
 - Retention periods and legal policy wording: configurable and reviewed before Phase 14 launch.
 - Initial country depth: broad discovery is allowed, but confidence depends on actual source/evidence coverage.

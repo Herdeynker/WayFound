@@ -22,6 +22,22 @@ export const serverEnvironmentSchema = z.object({
   AI_MODEL: optionalText,
   DISCOVERY_PROVIDER: optionalText,
   DISCOVERY_API_KEY: optionalText,
+  OPPORTUNITY_DISCOVERY_ENABLED: z.preprocess(emptyToUndefined, z.enum(["true", "false"]).optional()),
+  OPPORTUNITY_SEARCH_PROVIDER: z.preprocess(emptyToUndefined, z.literal("brave").optional()),
+  BRAVE_SEARCH_API_KEY: optionalText,
+  OPPORTUNITY_SEARCH_DAILY_LIMIT: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().min(1).max(25).optional(),
+  ),
+  OPPORTUNITY_SEARCH_MONTHLY_LIMIT: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().min(1).max(750).optional(),
+  ),
+  OPPORTUNITY_SEARCH_RESULTS_PER_QUERY: z.preprocess(
+    emptyToUndefined,
+    z.coerce.number().int().min(1).max(20).optional(),
+  ),
+  OPPORTUNITY_PAID_OVERAGE_ALLOWED: z.preprocess(emptyToUndefined, z.literal("false").optional()),
   RESEND_API_KEY: optionalText,
   NOTIFICATION_EMAIL_FROM: optionalText,
   TELEGRAM_BOT_TOKEN: optionalText,

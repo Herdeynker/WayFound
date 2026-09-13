@@ -58,10 +58,15 @@ Users may select multiple pathways. Onboarding, readiness and recommendations ad
 ### Opportunity supply
 
 - Registry-driven adapters for official governments, universities, scholarship bodies, employers and sponsor registers.
-- Search-based discovery limited by configured policy and source rules.
+- Autonomous provider-neutral broad discovery; Brave is the initial server-only provider.
+- Hard launch limits of 25 searches per UTC day, 750 per calendar month and 20 results per query; lower limits are configurable, paid overage is prohibited and quota uncertainty fails closed.
+- Rotating coverage for China, the UK, Canada, Australia, Germany, Ireland, the Netherlands, the US and New Zealand across all seven supported opportunity types, using Nigeria as the initial origin.
+- Search results are private leads only. New domains begin unverified and search snippets or secondary sources cannot become primary evidence.
+- Verified official APIs, RSS/Atom feeds, sitemaps, structured listings, JSON-LD and static pages are monitored directly without repeated search calls.
 - Normalized common and type-specific facts, original URL, canonical URL, captured evidence, extraction version, last checked time and lifecycle state.
 - Idempotent scheduled ingestion, retries, duplicate merging and dead-letter records.
 - No manual approval step in the normal publishing path.
+- No routine founder upload or laptop dependency in the production opportunity-supply path.
 
 ### Automated confidence and safety
 

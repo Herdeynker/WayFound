@@ -67,16 +67,33 @@ export async function fetchRegisteredSource(input: {
   url: string;
   signal?: AbortSignal;
   resolver?: (hostname: string) => Promise<Array<{ address: string }>>;
+  request?: typeof fetch;
+  conditional?: { etag?: string; lastModified?: string };
 }) {
   let target = assertSafeSourceUrl(input.url, input.policy);
   for (let redirects = 0; redirects <= input.policy.redirectLimit; redirects += 1) {
     if (process.env.NODE_ENV !== "test" || input.resolver)
       await assertPublicSourceHost(target, input.resolver);
-    const response = await fetch(target, {
+    const headers: Record<string, string> = {
+      Accept:
+        "application/json,application/rss+xml,application/atom+xml,application/xml,text/xml,text/html;q=0.9",
+      "User-Agent": "WAYFOUND-Source-Refresh/1.0",
+    };
+    if (input.conditional?.etag) headers["If-None-Match"] = input.conditional.etag.slice(0, 256);
+    if (input.conditional?.lastModified)
+      headers["If-Modified-Since"] = input.conditional.lastModified.slice(0, 256);
+    const response = await (input.request ?? fetch)(target, {
       redirect: "manual",
       signal: input.signal ?? AbortSignal.timeout(input.policy.requestTimeoutMs),
-      headers: { Accept: "text/html,application/json;q=0.9", "User-Agent": "WAYFOUND-Source-Refresh/1.0" },
+      headers,
     });
+    if (response.status === 304)
+      return {
+        response,
+        finalUrl: target.toString(),
+        body: new Uint8Array(),
+        metadata: safeResponseMetadata(response, 0),
+      };
     if (response.status >= 300 && response.status < 400) {
       const location = response.headers.get("location");
       if (!location || redirects === input.policy.redirectLimit)
@@ -85,7 +102,11 @@ export async function fetchRegisteredSource(input: {
       continue;
     }
     const contentType = response.headers.get("content-type") ?? "";
-    if (!/^(text\/html|application\/json)(;|$)/i.test(contentType))
+    if (
+      !/^(text\/html|application\/json|application\/(rss\+xml|atom\+xml|xml)|text\/xml)(;|$)/i.test(
+        contentType,
+      )
+    )
       throw new Error("Unsupported response content type.");
     const body = new Uint8Array(await response.arrayBuffer());
     if (body.byteLength > input.policy.responseSizeLimitBytes)

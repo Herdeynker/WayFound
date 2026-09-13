@@ -538,6 +538,250 @@
   }
 }
 
+/* Phase 15 operational evidence surface. It is fixture-gated and never exposes raw leads. */
+.discovery-operations {
+  min-height: 100vh;
+  padding: 52px clamp(24px, 5vw, 80px) 72px;
+  color: var(--navy, #071b41);
+  background:
+    radial-gradient(circle at 85% 8%, rgba(8, 171, 183, 0.14), transparent 25%),
+    linear-gradient(145deg, #f8fcff 0%, #edf7fb 100%);
+}
+.discovery-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 24px;
+  max-width: 1440px;
+  margin: 0 auto 28px;
+}
+.discovery-heading h1 {
+  margin: 4px 0 6px;
+  font-size: clamp(38px, 5vw, 64px);
+  letter-spacing: -0.05em;
+}
+.discovery-heading p {
+  max-width: 720px;
+  margin: 0;
+  color: #50617e;
+  font-size: 17px;
+}
+.discovery-state {
+  flex: none;
+  padding: 11px 16px;
+  border-radius: 999px;
+  color: #006d75;
+  background: #dff8f7;
+  font-weight: 800;
+}
+.discovery-state-disabled,
+.discovery-state-error {
+  color: #965119;
+  background: #fff0d6;
+}
+.discovery-state-quota-exhausted {
+  color: #7b3e00;
+  background: #ffe3b5;
+}
+.ui-card.discovery-hero {
+  display: grid;
+  grid-template-columns: 1fr minmax(260px, 360px);
+  gap: 32px;
+  max-width: 1440px;
+  margin: 0 auto 22px;
+  padding: 34px;
+  background: linear-gradient(130deg, #08284b, #07596a);
+  color: white;
+}
+.discovery-hero > div:first-child {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+}
+.discovery-hero h2 {
+  margin: 4px 0 10px;
+  font-size: clamp(26px, 3vw, 40px);
+  letter-spacing: -0.035em;
+}
+.discovery-hero p {
+  margin: 0;
+  color: #d2e8ee;
+  line-height: 1.55;
+}
+.discovery-radar {
+  display: grid;
+  place-items: center;
+  width: 58px;
+  height: 58px;
+  flex: none;
+  border: 2px solid #30d6d8;
+  border-radius: 50%;
+  color: #39dfe0;
+  font-size: 34px;
+}
+.discovery-quota {
+  padding: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.08);
+}
+.discovery-quota strong {
+  font-size: 38px;
+  color: #58e1df;
+}
+.discovery-quota strong span {
+  font-size: 20px;
+  color: #d2e8ee;
+}
+.discovery-quota > div {
+  height: 8px;
+  margin: 14px 0 10px;
+  overflow: hidden;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.discovery-quota > div span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #13c7c4, #ffb11b);
+}
+.discovery-quota small {
+  color: #bdd8df;
+}
+.discovery-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+  max-width: 1440px;
+  margin: 0 auto 22px;
+}
+.discovery-metric {
+  padding: 24px;
+}
+.discovery-metric > strong {
+  display: block;
+  color: #079ba5;
+  font-size: 36px;
+  letter-spacing: -0.04em;
+}
+.discovery-metric h3 {
+  margin: 4px 0;
+  font-size: 17px;
+}
+.discovery-metric p {
+  margin: 0;
+  color: #6a7890;
+  font-size: 14px;
+}
+.discovery-detail-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1fr;
+  gap: 22px;
+  max-width: 1440px;
+  margin: 0 auto;
+}
+.discovery-flow,
+.discovery-coverage {
+  padding: 30px;
+}
+.discovery-flow h2,
+.discovery-coverage h2 {
+  margin: 4px 0 22px;
+  font-size: 26px;
+}
+.discovery-flow ol {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.discovery-flow li {
+  display: flex;
+  gap: 15px;
+  align-items: flex-start;
+}
+.discovery-flow li > span {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  flex: none;
+  border-radius: 12px;
+  color: #007985;
+  background: #dcf7f6;
+  font-weight: 900;
+}
+.discovery-flow li strong {
+  display: block;
+  margin: 1px 0 3px;
+}
+.discovery-flow li p,
+.discovery-note {
+  margin: 0;
+  color: #63728a;
+  line-height: 1.5;
+}
+.discovery-country-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+.discovery-country-list span {
+  padding: 9px 12px;
+  border: 1px solid #d9e8ef;
+  border-radius: 999px;
+  color: #24445f;
+  background: #f8fcfe;
+  font-size: 13px;
+  font-weight: 700;
+}
+.discovery-coverage hr {
+  margin: 24px 0;
+  border: 0;
+  border-top: 1px solid #e3edf2;
+}
+@media (max-width: 820px) {
+  .discovery-operations {
+    padding: 28px 16px 44px;
+  }
+  .discovery-heading {
+    display: block;
+  }
+  .discovery-heading h1 {
+    font-size: 42px;
+  }
+  .discovery-state {
+    display: inline-block;
+    margin-top: 18px;
+  }
+  .ui-card.discovery-hero {
+    grid-template-columns: 1fr;
+    padding: 24px 20px;
+  }
+  .discovery-hero > div:first-child {
+    display: block;
+  }
+  .discovery-radar {
+    margin-bottom: 16px;
+  }
+  .discovery-metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .discovery-metric {
+    padding: 18px 15px;
+  }
+  .discovery-detail-grid {
+    grid-template-columns: 1fr;
+  }
+  .discovery-flow,
+  .discovery-coverage {
+    padding: 22px 18px;
+  }
+}
+
 /* Phase 14 — paid-beta trust and launch readiness */
 .trust-center-stack {
   display: grid;

@@ -111,7 +111,7 @@ Review Phase 14 as a production release audit. Re-run threat model, every RLS/st
 ### Phase 15 gate
 
 ```text
-Review Phase 15. Audit audio/question provenance, scoring, transcript accessibility, adaptive-plan correctness, mobile playback/upload resilience and unofficial estimate language. Fail any copied past paper or unlicensed audio.
+Review Phase 15 autonomous opportunity discovery. Prove the provider key is server-only; 25/day, 750/month and 20-result limits fail closed atomically; paid overage cannot be enabled; all nine destinations and seven types rotate; search snippets and new/secondary domains remain private and cannot become primary evidence; direct official-source monitoring uses no Brave call; retrieval preserves Phase 5 SSRF/redirect/size/policy controls; extraction preserves unknowns; exact/probable/annual-cycle deduplication is safe under concurrency; publication requires official evidence, deadline treatment, confidence and safe application links; matching and notification dispatch are idempotent; worker routes are authenticated, bounded and leased; disabled/quota/error states are honest. Run hosted RLS and earlier-phase security regressions. Fail automatic paid fallback, browser ingestion writes, manual-upload dependency, fake provider success or any Phase 16 work.
 ```
 
 ### Phase 16 gate

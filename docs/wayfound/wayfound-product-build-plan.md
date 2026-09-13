@@ -543,12 +543,11 @@ Do not delay beta for full auto-application, a huge IELTS library, native apps o
 
 # Post-beta phases
 
-## Phase 15 — Advanced IELTS
+## Phase 15 — Zero-cost autonomous opportunity discovery
 
-- Full listening mocks with original audio.
-- Larger original question bank.
-- Improved pronunciation and fluency analysis.
-- Adaptive study plan and spaced practice.
+Product-owner decision (2026-09-13): production opportunity supply must not depend on founder uploads. Complete the Phase 5 framework with a provider-neutral Brave Search integration, hard free-tier quota controls, rotating nine-country/seven-type queries, private discovery leads, verified-source resolution, native API/feed/sitemap/JSON-LD/HTML retrieval, strict extraction, evidence, deduplication, publication safety, deterministic matching, consent-aware notifications and lifecycle rechecks. Known official sources compound coverage through direct monitoring without consuming search calls. Search snippets and unverified or secondary-only leads never become publication evidence. The system is disabled until server secrets and authenticated schedules are configured, and automatic paid overage is prohibited.
+
+Advanced IELTS remains unscheduled future work after the Phase 13 foundation; it is not part of Phase 15 under this later product-owner decision.
 
 ## Phase 16 — Interview studio
 

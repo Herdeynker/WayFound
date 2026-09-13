@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createSupabaseAdminClient } from "@/server/supabase/admin";
+import { parseDiscoveryConfiguration } from "@/server/discovery/model";
 
 type OperationResult = { data: Array<Record<string, unknown>> | null; count: number | null; error: unknown };
 type OperationQuery = PromiseLike<OperationResult> & {
@@ -32,6 +33,7 @@ export async function getOperationsSummary(now = new Date()) {
     scanInfected,
     aiUsage,
     funnelEvents,
+    discovery,
   ] = await Promise.all([
     admin
       .from("ingestion_runs")
@@ -71,6 +73,7 @@ export async function getOperationsSummary(now = new Date()) {
       .from("product_analytics_events")
       .select("id", { count: "exact", head: true })
       .gte("occurred_at", since),
+    admin.from("phase15_discovery_operations_summary").select("*").limit(1),
   ]);
   const results = [
     latestIngestion,
@@ -82,12 +85,19 @@ export async function getOperationsSummary(now = new Date()) {
     scanInfected,
     aiUsage,
     funnelEvents,
+    discovery,
   ];
   if (results.some((result) => result.error)) throw new Error("Operations summary is unavailable");
   const estimatedAiCostMicrounits = (aiUsage.data ?? []).reduce((total, row) => {
     const value = row.estimated_cost_microunits;
     return total + (typeof value === "number" && Number.isFinite(value) ? value : 0);
   }, 0);
+  const discoveryConfiguration = parseDiscoveryConfiguration();
+  const discoveryRow = discovery.data?.[0] ?? {};
+  const numeric = (key: string) => {
+    const value = discoveryRow[key];
+    return typeof value === "number" && Number.isFinite(value) ? value : 0;
+  };
   return {
     generatedAt: now.toISOString(),
     windowHours: 24,
@@ -106,5 +116,26 @@ export async function getOperationsSummary(now = new Date()) {
     },
     providers: { estimatedAiCostMicrounits },
     funnel: { eventsLast24Hours: numberOrZero(funnelEvents.count) },
+    discovery: {
+      provider: discoveryConfiguration.provider,
+      providerStatus: discoveryConfiguration.status,
+      searchesToday: numeric("searches_today"),
+      dailyLimit: numeric("daily_limit") || discoveryConfiguration.dailyLimit,
+      searchesThisMonth: numeric("searches_this_month"),
+      monthlyLimit: numeric("monthly_limit") || discoveryConfiguration.monthlyLimit,
+      leadsLast24Hours: numeric("leads_last_24_hours"),
+      duplicatesLast24Hours: numeric("duplicates_last_24_hours"),
+      rejectedLast24Hours: numeric("rejected_last_24_hours"),
+      publishedLast24Hours: numeric("published_last_24_hours"),
+      leadBacklog: numeric("lead_backlog"),
+      unverifiedDomains: numeric("unverified_domains"),
+      retrievalFailuresLast24Hours: numeric("retrieval_failures_last_24_hours"),
+      extractionFailuresLast24Hours: numeric("extraction_failures_last_24_hours"),
+      lastSuccessfulEndToEndAt:
+        typeof discoveryRow.last_successful_end_to_end_at === "string"
+          ? discoveryRow.last_successful_end_to_end_at
+          : null,
+      paidOverageAllowed: false,
+    },
   };
 }
