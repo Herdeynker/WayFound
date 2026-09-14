@@ -43,6 +43,31 @@ The daily planner selects at most 25 unique queries across scholarship/fellowshi
 
 Verified registry sources compound coverage without Brave calls. The registry records the approved method (`api`, `rss`, `atom`, `sitemap`, `structured_listing`, `json_ld`, `static_html` or an adapter), cadence, ETag, Last-Modified value, content hash, crawl delay and circuit state. Structured API/feed links become private direct-source leads and pass through the same evidence and publication controls.
 
+### Verified starter registry
+
+The first reviewed registry seed is versioned in
+`supabase/migrations/20260908130003_phase15_verified_source_registry.sql`. It covers the
+requested jurisdictions without treating a search result or a job-board listing as official
+evidence:
+
+| Jurisdiction | Source | Status | Retrieval method |
+| --- | --- | --- | --- |
+| China | China Scholarship Council Campus China | Disabled pending robots/terms review | Static HTML |
+| United Kingdom | UK Government Find a Job | Disabled pending a machine-readable robots review | Static HTML |
+| Canada | Government of Canada Job Bank | Enabled | Static HTML |
+| Australia | CSIRO Careers | Enabled | Static HTML |
+| Germany | Make it in Germany | Enabled | Static HTML |
+| Ireland | Research Ireland funding programmes | Enabled | Static HTML |
+| Netherlands | University of Amsterdam vacancies | Enabled | JSON-LD/HTML |
+| United States | USAJOBS Early Careers | Enabled | JSON-LD/HTML |
+| New Zealand | New Zealand Government Jobs | Disabled pending DNS/policy review | Static HTML |
+
+Official status, public URLs, robots observations, review date, cadence and allowed hostnames
+are recorded in the migration. Enabled rows are limited to public pages whose robots response
+allowed bounded retrieval at review time. A disabled row is not a failed discovery result and
+cannot resolve or publish a lead. Vacancy availability, eligibility and sponsorship remain
+vacancy-specific unknowns until the source page states them explicitly.
+
 The native retrieval priority is API, RSS/Atom, sitemap, JSON-LD, static HTML, deterministic adapter and only then a bounded configured AI extractor. JavaScript-only, authenticated, paywalled, CAPTCHA, blocked or policy-disallowed content stays unresolved. WAYFOUND does not use evasive crawling or paid renderers/proxies.
 
 ## Source resolution and trust

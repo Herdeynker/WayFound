@@ -178,17 +178,87 @@ const cleanup = {
 };
 
 describe("Phase 15 hosted schema and RLS", () => {
+  hostedCase("keeps the verified starter registry bounded and honest", async () => {
+    if (!rawAdmin) throw new Error("Hosted client unavailable");
+    const result = (await rawAdmin
+      .from("source_registry")
+      .select(
+        "canonical_domain,is_allowed,active,is_official_source,is_fixture,robots_policy_status,terms_review_status",
+      )
+      .in("canonical_domain", [
+        "campuschina.org",
+        "findajob.dwp.gov.uk",
+        "jobbank.gc.ca",
+        "jobs.csiro.au",
+        "make-it-in-germany.com",
+        "researchireland.ie",
+        "werkenbij.uva.nl",
+        "usajobs.gov",
+        "jobs.govt.nz",
+      ])) as DbResult<
+      Array<{
+        canonical_domain: string;
+        is_allowed: boolean;
+        active: boolean;
+        is_official_source: boolean;
+        is_fixture: boolean;
+        robots_policy_status: string;
+        terms_review_status: string;
+      }>
+    >;
+    expect(result.error).toBeNull();
+    const rows = result.data ?? [];
+    expect(rows).toHaveLength(9);
+    expect(rows.filter((row) => row.is_allowed && row.active && row.is_official_source)).toHaveLength(6);
+    expect(rows.filter((row) => !row.is_allowed && !row.active)).toHaveLength(3);
+    expect(rows.every((row) => !row.is_fixture)).toBe(true);
+    expect(
+      rows.filter((row) => !row.is_allowed).every((row) => row.robots_policy_status === "review_required"),
+    ).toBe(true);
+    expect(
+      rows.filter((row) => !row.is_allowed).every((row) => row.terms_review_status === "not_reviewed"),
+    ).toBe(true);
+  });
+
   afterAll(async () => {
     if (!rawAdmin || !admin) return;
     for (const user of cleanup.users) await admin.auth.admin.deleteUser(user);
-    for (const id of cleanup.opportunityIds) await rawAdmin.from("opportunities").delete().eq("id", id);
+    for (const id of cleanup.opportunityIds) {
+      const deleted = await rawAdmin.from("opportunities").delete().eq("id", id);
+      if (deleted.error)
+        await rawAdmin
+          .from("opportunities")
+          .update({
+            lifecycle_status: "suppressed",
+            publication_status: "fixture",
+            evidence_status: "fixture",
+            is_fixture: true,
+          })
+          .eq("id", id);
+    }
     for (const id of cleanup.leadIds)
       await rawAdmin.from("opportunity_discovery_leads").delete().eq("id", id);
     for (const id of cleanup.searchIds) await rawAdmin.from("opportunity_search_runs").delete().eq("id", id);
     for (const id of cleanup.queryIds)
       await rawAdmin.from("opportunity_generated_queries").delete().eq("id", id);
     for (const id of cleanup.jobIds) await rawAdmin.from("opportunity_discovery_jobs").delete().eq("id", id);
-    for (const id of cleanup.sourceIds) await rawAdmin.from("source_registry").delete().eq("id", id);
+    for (const id of cleanup.sourceIds) {
+      const deleted = await rawAdmin.from("source_registry").delete().eq("id", id);
+      if (deleted.error)
+        await rawAdmin
+          .from("source_registry")
+          .update({
+            source_type: "fixture",
+            is_official_source: false,
+            is_allowed: false,
+            discovery_method: "fixture",
+            robots_policy_status: "review_required",
+            terms_review_status: "not_reviewed",
+            active: false,
+            is_fixture: true,
+          })
+          .eq("id", id);
+    }
     for (const domain of cleanup.domains)
       await rawAdmin.from("opportunity_domain_discovery_status").delete().eq("domain", domain);
     for (const name of cleanup.organizationNames)
