@@ -304,6 +304,81 @@ describe("Phase 15 source safety and extraction", () => {
     );
   });
 
+  it("accepts nullable optional fields in official JobPosting JSON-LD", () => {
+    const html = `<script type="application/ld+json">${JSON.stringify({
+      "@type": "JobPosting",
+      name: null,
+      title: "PhD in Multiscale Modeling of Smart Self-Sealing Materials",
+      description: "A research position at the University of Amsterdam in the Netherlands.",
+      validThrough: "2026-10-15T21:59:59Z",
+      datePosted: "2026-08-19T15:14:53Z",
+      url: null,
+      hiringOrganization: { name: "UVA", sameAs: ["https://www.uva.nl/"] },
+      provider: null,
+      jobLocation: {
+        "@type": "Place",
+        address: { "@type": "PostalAddress", addressCountry: "Netherlands" },
+      },
+    })}</script>`;
+    const extracted = extractOpportunityFromHtml({
+      html,
+      sourceUrl: "https://careers.example.test/jobs/nullable-json-ld",
+      source: officialSource,
+      now: new Date("2026-09-14T00:00:00Z"),
+    });
+    expect(extracted.method).toBe("json_ld");
+    expect(extracted.candidate).toMatchObject({
+      title: "PhD in Multiscale Modeling of Smart Self-Sealing Materials",
+      organizationName: "UVA",
+      opportunityTypeCode: "research_position",
+      destinationCountryCode: "NL",
+      applicationDeadline: "2026-10-15",
+    });
+  });
+
+  it("keeps semantic content identity stable when official HTML has volatile noise", () => {
+    const render = (nonce: string, deadline = "2026-10-15") =>
+      `<html><head><meta name="request-id" content="${nonce}" /><script type="application/ld+json">${JSON.stringify(
+        {
+          "@type": "JobPosting",
+          title: "PhD in Stable Research",
+          description: "A research position at the University of Amsterdam in the Netherlands.",
+          validThrough: deadline,
+          url: "https://careers.example.test/vacancies/stable-research",
+          hiringOrganization: { name: "UVA" },
+          jobLocation: { address: { addressCountry: "Netherlands" } },
+        },
+      )}</script></head><body><p>${nonce}</p></body></html>`;
+    const first = extractOpportunityFromHtml({
+      html: render("volatile-one"),
+      sourceUrl: "https://careers.example.test/vacancies/stable-research",
+      source: officialSource,
+      now: new Date("2026-09-14T00:00:00Z"),
+    });
+    const second = extractOpportunityFromHtml({
+      html: render("volatile-two"),
+      sourceUrl: "https://careers.example.test/vacancies/stable-research",
+      source: officialSource,
+      now: new Date("2026-09-14T00:00:00Z"),
+    });
+    expect(first.candidate?.contentHash).toBe(second.candidate?.contentHash);
+
+    const materiallyChanged = extractOpportunityFromHtml({
+      html: render("volatile-three", "2026-11-15"),
+      sourceUrl: "https://careers.example.test/vacancies/stable-research",
+      source: officialSource,
+      now: new Date("2026-09-14T00:00:00Z"),
+    });
+    const alternateSource = extractOpportunityFromHtml({
+      html: render("volatile-four"),
+      sourceUrl: "https://careers.example.test/vacancies/stable-research",
+      source: { ...officialSource, id: "6fbcb72f-0fe1-4ae1-8c0f-89e193fc44cb" },
+      now: new Date("2026-09-14T00:00:00Z"),
+    });
+    expect(materiallyChanged.candidate?.contentHash).not.toBe(first.candidate?.contentHash);
+    expect(alternateSource.candidate?.contentHash).not.toBe(first.candidate?.contentHash);
+  });
+
   it.each([
     ["China scholarship", "A fully funded scholarship in China.", "scholarship", "CN"],
     ["UK graduate programme", "A graduate programme in the United Kingdom.", "graduate_programme", "GB"],

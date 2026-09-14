@@ -300,7 +300,7 @@ export interface AutonomousDiscoveryStore extends DiscoveryStore {
   dispatchMatchingAndNotifications(
     published: PublishedOpportunity,
     candidate: DiscoveredOpportunity,
-  ): Promise<{ matches: number; notifications: number }>;
+  ): Promise<{ matches: number; notifications: number; failures?: number }>;
   saveDirectSourceLead(input: {
     sourceId: string;
     url: string;

@@ -524,7 +524,7 @@ export class SupabaseDiscoveryStore implements AutonomousDiscoveryStore {
   async dispatchMatchingAndNotifications(
     published: PublishedOpportunity,
     candidate: DiscoveredOpportunity,
-  ): Promise<{ matches: number; notifications: number }> {
+  ): Promise<{ matches: number; notifications: number; failures: number }> {
     const profiles = await this.client
       .from("profile_versions")
       .select("id,user_id,version_number,snapshot")
@@ -545,6 +545,7 @@ export class SupabaseDiscoveryStore implements AutonomousDiscoveryStore {
     };
     let matches = 0;
     let notifications = 0;
+    let failures = 0;
     for (const profile of latest.values()) {
       const snapshot =
         profile.snapshot && typeof profile.snapshot === "object" && !Array.isArray(profile.snapshot)
@@ -575,43 +576,47 @@ export class SupabaseDiscoveryStore implements AutonomousDiscoveryStore {
         destination: candidate.destinationCountryCode ?? "global",
         contentHash: candidate.contentHash,
       });
-      const persisted = await persistMatchEvaluation(this.client, {
-        userId: profile.user_id,
-        profileVersionId: profile.id,
-        opportunityId: published.opportunityId,
-        opportunityVersionId: published.opportunityVersionId,
-        confidenceAssessmentId: published.confidenceAssessmentId,
-        algorithmVersion: `${MATCH_ALGORITHM_VERSION}.phase15`,
-        scoringConfigurationVersion: SCORING_CONFIGURATION_VERSION,
-        inputFingerprint,
-        candidateRank: 1,
-        eligibilityOutcome: "more_information_needed",
-        publicationDecision: candidate.sponsorshipStatus === "conflicting" ? "more_evidence" : "limited",
-        matchScore: score,
-        readinessState: "unknown",
-        selectionFactors: {
-          goal_alignment: true,
-          destination_alignment: destinationAligned,
-          deterministic: true,
-        },
-      });
-      if (!persisted.created) continue;
-      matches += 1;
-      await enqueueNotificationEvent(
-        {
+      try {
+        const persisted = await persistMatchEvaluation(this.client, {
           userId: profile.user_id,
-          eventType: score >= 80 ? "strong_match" : "new_match",
-          resourceKind: "opportunity",
-          resourceId: published.opportunityId,
-          occurrenceKey: `phase15:${published.opportunityVersionId}`,
-          occurredAt: new Date(),
-          safeContext: { urgency: "routine" },
-        },
-        this.client,
-      );
-      notifications += 1;
+          profileVersionId: profile.id,
+          opportunityId: published.opportunityId,
+          opportunityVersionId: published.opportunityVersionId,
+          confidenceAssessmentId: published.confidenceAssessmentId,
+          algorithmVersion: `${MATCH_ALGORITHM_VERSION}.phase15`,
+          scoringConfigurationVersion: SCORING_CONFIGURATION_VERSION,
+          inputFingerprint,
+          candidateRank: 1,
+          eligibilityOutcome: "more_information_needed",
+          publicationDecision: candidate.sponsorshipStatus === "conflicting" ? "more_evidence" : "limited",
+          matchScore: score,
+          readinessState: "unknown",
+          selectionFactors: {
+            goal_alignment: true,
+            destination_alignment: destinationAligned,
+            deterministic: true,
+          },
+        });
+        if (!persisted.created) continue;
+        matches += 1;
+        await enqueueNotificationEvent(
+          {
+            userId: profile.user_id,
+            eventType: score >= 80 ? "strong_match" : "new_match",
+            resourceKind: "opportunity",
+            resourceId: published.opportunityId,
+            occurrenceKey: `phase15:${published.opportunityVersionId}`,
+            occurredAt: new Date(),
+            safeContext: { urgency: "routine" },
+          },
+          this.client,
+        );
+        notifications += 1;
+      } catch {
+        failures += 1;
+      }
     }
-    return { matches, notifications };
+    return { matches, notifications, failures };
   }
 
   async saveDirectSourceLead(input: {

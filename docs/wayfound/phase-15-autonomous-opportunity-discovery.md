@@ -1,6 +1,6 @@
 # Phase 15 — Zero-Cost Autonomous Opportunity Discovery
 
-Status: implemented production architecture; provider disabled by default
+Status: implemented production architecture; provider disabled by default; bounded development pilot evidence captured
 Product-owner decision date: 2026-09-13
 Scope boundary: no Phase 16 Interview Studio work
 
@@ -68,6 +68,31 @@ allowed bounded retrieval at review time. A disabled row is not a failed discove
 cannot resolve or publish a lead. Vacancy availability, eligibility and sponsorship remain
 vacancy-specific unknowns until the source page states them explicitly.
 
+### Bounded development pilot evidence
+
+On 2026-09-14, the linked development project ran three authenticated Brave calls
+against two domain-scoped query templates, within the 25-per-day and 750-per-month
+ceilings. The calls produced 46 private leads (19 + 20 + 7), with zero malformed
+rejections and zero duplicate result inserts. The two current UvA PhD listings were
+resolved to the registered official source, retrieved with HTTP 200, extracted from
+JSON-LD, published with bounded evidence and confidence decisions, and dispatched to
+temporary development Passport users. Temporary users and their match/notification
+records are removed after verification; the published opportunities and source evidence
+are retained as legitimate development data.
+
+Forward-only corrective migrations `20260908130004` through `20260908130007` remove
+invalid generic timestamp triggers from immutable provenance tables, tune the verified
+UvA timeout within the schema's hard maximum, and prevent operational source timestamps
+from minting material opportunity versions. The final guard also preserves the Phase 9
+parent-cascade check so related-record deletion cannot create an orphan version. Hosted replay then published both persisted
+listings again with zero duplicate versions, matches or notifications and zero additional
+Brave requests.
+
+The extractor's candidate identity is a normalized hash of explicit opportunity facts,
+not volatile full-page HTML. Retrieval content hashes remain available for source
+change detection. This preserves deterministic matching and notification replay when an
+official page changes unrelated markup or request metadata.
+
 The native retrieval priority is API, RSS/Atom, sitemap, JSON-LD, static HTML, deterministic adapter and only then a bounded configured AI extractor. JavaScript-only, authenticated, paywalled, CAPTCHA, blocked or policy-disallowed content stays unresolved. WAYFOUND does not use evasive crawling or paid renderers/proxies.
 
 ## Source resolution and trust
@@ -106,6 +131,23 @@ Suggested launch cadence:
 - closing-soon rechecks: daily;
 - registries: their approved refresh interval;
 - retry/cleanup: controlled backoff and daily maintenance.
+
+Production scheduler preparation is intentionally documented but not enabled. Each
+request must include `Authorization: Bearer <CRON_SECRET>` and use a deployment secret
+manager; no credential is placed in a cron expression. The canonical stage schedule is:
+
+| Stage | Cron (UTC) | Batch/limit | Retry and overlap rule |
+| --- | --- | --- | --- |
+| `query_generation` | `7 0 * * *` | one daily planner; at most 25 unique queries | one idempotency key per UTC day; skip an active lease |
+| `web_discovery` | `17,37,57 * * * *` | one queued query per invocation; max 20 results | quota RPC reserves one call; no paid fallback; retry only bounded rate/timeout failures |
+| `known_source_monitoring` | `11 */6 * * *` | registered sources due for refresh | one lease per source; disable after bounded consecutive failures |
+| `lead_resolution` through `notification` | `*/15 * * * *` | max 10 leads per worker invocation | `SKIP LOCKED`, three job attempts, exponential retry and dead-letter state |
+| `recheck` | `23 * * * *` | due opportunities only | one opportunity lease; preserve unchanged/expired/withdrawn outcome |
+| `retry` | `41 * * * *` | due retry jobs only | backoff; no overlap for the same job idempotency key |
+| `cleanup` | `13 3 * * *` | terminal jobs beyond retention | service-only maintenance; never delete published evidence from normal cleanup |
+
+These schedules remain a launch checklist. The development pilot was bounded manually and
+does not authorize production discovery activation.
 
 No job depends on a developer laptop. The hosting scheduler must send `Authorization: Bearer <CRON_SECRET>`.
 

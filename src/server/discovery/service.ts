@@ -192,6 +192,8 @@ export async function processDiscoveryLeads(input: {
     retries: 0,
     matches: 0,
     notifications: 0,
+    matchingFailures: 0,
+    processingFailures: 0,
   };
   for (const lead of leads) {
     totals.processed += 1;
@@ -225,6 +227,7 @@ export async function processDiscoveryLeads(input: {
       continue;
     }
     const source = resolution.source;
+    let retrievalCompleted = false;
     try {
       const isBaseSourceRefresh =
         canonicalizeDiscoveryUrl(lead.canonicalUrl) === canonicalizeDiscoveryUrl(source.baseUrl);
@@ -275,6 +278,7 @@ export async function processDiscoveryLeads(input: {
         lastModified: retrieved.metadata.lastModified ?? undefined,
         byteLength: retrieved.metadata.byteLength,
       });
+      retrievalCompleted = true;
       if (isBaseSourceRefresh)
         await input.store.updateSourceMonitorState(source.id, {
           etag: retrieved.metadata.etag ?? undefined,
@@ -438,12 +442,25 @@ export async function processDiscoveryLeads(input: {
         sourceId: source.id,
         candidate,
       });
-      const downstream = await input.store.dispatchMatchingAndNotifications(published, candidate);
       await input.store.completeLead(lead.id, "published");
       totals.published += 1;
-      totals.matches += downstream.matches;
-      totals.notifications += downstream.notifications;
+      try {
+        const downstream = await input.store.dispatchMatchingAndNotifications(published, candidate);
+        totals.matches += downstream.matches;
+        totals.notifications += downstream.notifications;
+        totals.matchingFailures += downstream.failures ?? 0;
+      } catch (error) {
+        totals.matchingFailures += 1;
+        void redactOperationalError(error);
+      }
     } catch (error) {
+      if (retrievalCompleted) {
+        await input.store.completeLead(lead.id, "retry", "processing_failure");
+        totals.retries += 1;
+        totals.processingFailures += 1;
+        void redactOperationalError(error);
+        continue;
+      }
       const retry = classifyFetchFailure(error, 1, source.retryLimit, 0);
       await input.store.recordRetrieval({
         leadId: lead.id,

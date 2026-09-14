@@ -25,8 +25,11 @@
 | Honest disabled state | Disabled configuration, 503 worker response, operations UI | Unit/E2E/visual tests | Complete |
 | Privacy-safe operations | Service-only aggregate view/operations payload | RLS and response audit | Complete |
 | Credential isolation | Server-only env/header; no DB/client/log storage | Secret and client-bundle scans | Complete |
-| Provider pilot | Boundary fully implemented; live pilot requires a securely supplied Brave key | No live result claimed | Permitted deferred activation |
-| Phase 2–14 regression | Full repository quality/security suites | Final gate transcript | Complete |
+| Corrective persistence normalization | Forward migrations `130004` and `130005` remove invalid provenance-table timestamp triggers and bound UvA retrieval at 30 seconds | Hosted migration history, HTTP 200 retrievals and publication replay | Complete |
+| Semantic replay identity | Normalized explicit facts include source identity; volatile markup and operational timestamps cannot mint replay versions | Unit semantic-change matrix, hosted exact/material/concurrent replay and migration `130006` | Complete |
+| Cascade-safe replay guard | Forward migration `130007` combines the semantic timestamp guard with the Phase 9 parent-existence safeguard | Hosted Phase 9 and Phase 15 integration regressions | Complete |
+| Provider pilot | Boundary fully implemented; three authenticated Brave calls stayed within quota, produced 46 private leads and safely published two official UvA opportunities | Pilot ledger, hosted persistence audit, matching/notification assertions and zero-search replay | Complete in development; production remains disabled until the exposed key is replaced and scheduler secrets are configured |
+| Phase 2–14 regression | Full repository quality/security suites | 163 unit, 43 component, 19 hosted integration, 119 behavioural Playwright and 174 visual checks passed; viewport-specific skips remained intentional | Complete |
 | Phase 16 excluded | Changed-file/route audit | Scope scan | Complete |
 
 Any pending final-gate row must be changed to Complete before Phase 15 PASS and delivery.

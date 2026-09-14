@@ -21,9 +21,9 @@ const admin = live
   ? createClient(url!, secretKey!, { auth: { autoRefreshToken: false, persistSession: false } })
   : null;
 
-type DbResult<T> = { data: T | null; error: { code?: string } | null };
+type DbResult<T> = { data: T | null; error: { code?: string } | null; count?: number | null };
 interface Query<T = unknown> extends PromiseLike<DbResult<T>> {
-  select(columns?: string): Query<T>;
+  select(columns?: string, options?: { count?: "exact"; head?: boolean }): Query<T>;
   eq(column: string, value: unknown): Query<T>;
   in(column: string, values: readonly unknown[]): Query<T>;
   order(column: string, options?: { ascending?: boolean }): Query<T>;
@@ -32,7 +32,7 @@ interface Query<T = unknown> extends PromiseLike<DbResult<T>> {
   maybeSingle(): Query<T>;
 }
 interface RawTable {
-  select(columns?: string): Query;
+  select(columns?: string, options?: { count?: "exact"; head?: boolean }): Query;
   insert(value: unknown): Query;
   update(value: unknown): Query;
   delete(): Query;
@@ -122,7 +122,7 @@ class EndToEndStore implements AutonomousDiscoveryStore {
     };
   }
   async dispatchMatchingAndNotifications() {
-    return { matches: 2, notifications: 1 };
+    return { matches: 2, notifications: 1, failures: 0 };
   }
   async saveDirectSourceLead() {
     return true;
@@ -162,6 +162,68 @@ describe("Phase 15 deterministic end-to-end discovery", () => {
       opportunityTypeCode: "scholarship",
       destinationCountryCode: "CN",
     });
+  });
+
+  it("keeps a published lead terminal when downstream matching fails", async () => {
+    const store = new EndToEndStore();
+    store.dispatchMatchingAndNotifications = async () => {
+      throw new Error("synthetic downstream failure");
+    };
+    const html = `<!doctype html><html><head><script type="application/ld+json">${JSON.stringify({
+      "@type": "EducationalOccupationalProgram",
+      name: "China Global Scholarship",
+      description: "A fully funded scholarship in China for international applicants.",
+      validThrough: "2099-12-31",
+      url: store.lead.canonicalUrl,
+      provider: { name: "Official Scholarship Council" },
+    })}</script></head></html>`;
+    const result = await processDiscoveryLeads({
+      store,
+      config: {
+        enabled: true,
+        provider: "brave",
+        dailyLimit: 25,
+        monthlyLimit: 750,
+        resultsPerQuery: 20,
+        paidOverageAllowed: false,
+        status: "provider_disabled",
+      },
+      request: async () => new Response(html, { status: 200, headers: { "content-type": "text/html" } }),
+    });
+    expect(result).toMatchObject({ published: 1, matchingFailures: 1, retries: 0 });
+    expect(store.statuses).toContain("published");
+    expect(store.retrievalCount).toBe(1);
+  });
+
+  it("does not misreport a post-retrieval persistence failure as an HTTP failure", async () => {
+    const store = new EndToEndStore();
+    store.publishCandidate = async () => {
+      throw new Error("synthetic persistence failure");
+    };
+    const html = `<!doctype html><html><head><script type="application/ld+json">${JSON.stringify({
+      "@type": "EducationalOccupationalProgram",
+      name: "China Global Scholarship",
+      description: "A fully funded scholarship in China for international applicants.",
+      validThrough: "2099-12-31",
+      url: store.lead.canonicalUrl,
+      provider: { name: "Official Scholarship Council" },
+    })}</script></head></html>`;
+    const result = await processDiscoveryLeads({
+      store,
+      config: {
+        enabled: true,
+        provider: "brave",
+        dailyLimit: 25,
+        monthlyLimit: 750,
+        resultsPerQuery: 20,
+        paidOverageAllowed: false,
+        status: "provider_disabled",
+      },
+      request: async () => new Response(html, { status: 200, headers: { "content-type": "text/html" } }),
+    });
+    expect(result).toMatchObject({ retries: 1, processingFailures: 1, published: 0 });
+    expect(store.retrievalCount).toBe(1);
+    expect(store.statuses).toContain("retry");
   });
 });
 
@@ -502,6 +564,12 @@ describe("Phase 15 hosted schema and RLS", () => {
       expect(visible.error).toBeNull();
       expect(visible.data).toEqual([{ id: opportunityId }]);
 
+      const versionsBeforeReplay = (await rawAdmin
+        .from("opportunity_versions")
+        .select("id", { count: "exact", head: true })
+        .eq("opportunity_id", opportunityId)) as DbResult<never>;
+      expect(versionsBeforeReplay.error).toBeNull();
+
       const replay = (await rawAdmin.rpc("phase15_publish_candidate", {
         candidate_lead: leadId,
         candidate_source: sourceId,
@@ -525,6 +593,65 @@ describe("Phase 15 hosted schema and RLS", () => {
       })) as DbResult<Array<{ opportunity_id: string; created: boolean }>>;
       expect(replay.error).toBeNull();
       expect(replay.data?.[0]).toMatchObject({ opportunity_id: opportunityId, created: false });
+
+      const versionsAfterReplay = (await rawAdmin
+        .from("opportunity_versions")
+        .select("id", { count: "exact", head: true })
+        .eq("opportunity_id", opportunityId)) as DbResult<never>;
+      expect(versionsAfterReplay.error).toBeNull();
+      expect(versionsAfterReplay.count).toBe(versionsBeforeReplay.count);
+
+      const changedArgs = {
+        candidate_lead: leadId,
+        candidate_source: sourceId,
+        candidate_type_code: "scholarship",
+        candidate_title: "Phase 15 hosted scholarship",
+        candidate_normalized_title: `phase 15 hosted scholarship ${suffix}`,
+        candidate_organization: `Phase 15 University ${suffix}`,
+        candidate_destination_code: "CN",
+        candidate_is_global: false,
+        candidate_summary: "A deterministic hosted security fixture with a changed deadline.",
+        candidate_canonical_url: canonicalUrl,
+        candidate_application_url: canonicalUrl,
+        candidate_deadline: "2100-01-31",
+        candidate_rolling: false,
+        candidate_funding: "full",
+        candidate_sponsorship: "not_stated",
+        candidate_content_hash: suffix.padEnd(64, "d"),
+        candidate_duplicate_key: `phase15:${suffix}`,
+        candidate_evidence_excerpt: "Official scholarship applications close on 2100-01-31.",
+        candidate_decision_fingerprint: suffix.padEnd(64, "e"),
+      };
+      const changed = (await rawAdmin.rpc("phase15_publish_candidate", changedArgs)) as DbResult<
+        Array<{ opportunity_id: string; created: boolean }>
+      >;
+      expect(changed.error).toBeNull();
+      expect(changed.data?.[0]).toMatchObject({ opportunity_id: opportunityId, created: false });
+      const versionsAfterChange = (await rawAdmin
+        .from("opportunity_versions")
+        .select("id", { count: "exact", head: true })
+        .eq("opportunity_id", opportunityId)) as DbResult<never>;
+      expect(versionsAfterChange.error).toBeNull();
+      expect(versionsAfterChange.count).toBeGreaterThan(versionsAfterReplay.count ?? 0);
+      const evidence = (await rawAdmin
+        .from("opportunity_evidence")
+        .select("id,active")
+        .eq("opportunity_id", opportunityId)) as DbResult<Array<{ id: string; active: boolean }>>;
+      expect(evidence.error).toBeNull();
+      expect(evidence.data?.filter((row) => row.active)).toHaveLength(1);
+      expect(evidence.data?.some((row) => !row.active)).toBe(true);
+
+      const concurrentReplay = await Promise.all([
+        rawAdmin.rpc("phase15_publish_candidate", changedArgs),
+        rawAdmin.rpc("phase15_publish_candidate", changedArgs),
+      ]);
+      expect(concurrentReplay.every((result) => !result.error)).toBe(true);
+      const versionsAfterConcurrentReplay = (await rawAdmin
+        .from("opportunity_versions")
+        .select("id", { count: "exact", head: true })
+        .eq("opportunity_id", opportunityId)) as DbResult<never>;
+      expect(versionsAfterConcurrentReplay.error).toBeNull();
+      expect(versionsAfterConcurrentReplay.count).toBe(versionsAfterChange.count);
 
       const password = `Phase15-${crypto.randomUUID()}-Safe!`;
       const created = await admin.auth.admin.createUser({

@@ -43,6 +43,45 @@ const stripMarkup = (value: string) =>
   );
 const textMatch = (html: string, expression: RegExp) => decodeEntities(expression.exec(html)?.[1] ?? "");
 const hash = (value: string) => createHash("sha256").update(value).digest("hex");
+const normalizeHashText = (value: string | undefined) => value?.replace(/\s+/g, " ").trim() ?? null;
+const semanticContentHash = (input: {
+  sourceId: string;
+  canonicalUrl: string;
+  applicationUrl?: string;
+  title: string;
+  organizationName: string;
+  opportunityTypeCode: DiscoveryOpportunityType;
+  destinationCountryCode?: string;
+  isGlobal: boolean;
+  summary?: string;
+  applicationOpenDate?: string;
+  applicationDeadline?: string;
+  rollingDeadline: boolean;
+  lifecycleStatus: string;
+  fundingCoverage: string;
+  sponsorshipStatus: string;
+  evidenceExcerpt: string;
+}) =>
+  hash(
+    JSON.stringify([
+      input.sourceId,
+      input.canonicalUrl,
+      input.applicationUrl ?? null,
+      normalizeHashText(input.title),
+      normalizeHashText(input.organizationName),
+      input.opportunityTypeCode,
+      input.destinationCountryCode ?? null,
+      input.isGlobal,
+      normalizeHashText(input.summary),
+      input.applicationOpenDate ?? null,
+      input.applicationDeadline ?? null,
+      input.rollingDeadline,
+      input.lifecycleStatus,
+      input.fundingCoverage,
+      input.sponsorshipStatus,
+      normalizeHashText(input.evidenceExcerpt),
+    ]),
+  );
 
 function findCountry(text: string) {
   const lower = text.toLowerCase();
@@ -92,17 +131,17 @@ function findApplicationLink(html: string, baseUrl: string): string | undefined 
 const jsonLdSchema = z
   .object({
     "@type": z.union([z.string(), z.array(z.string())]).optional(),
-    name: z.string().optional(),
-    title: z.string().optional(),
-    description: z.string().optional(),
-    url: z.string().optional(),
-    validThrough: z.string().optional(),
-    datePosted: z.string().optional(),
+    name: z.string().nullish(),
+    title: z.string().nullish(),
+    description: z.string().nullish(),
+    url: z.string().nullish(),
+    validThrough: z.string().nullish(),
+    datePosted: z.string().nullish(),
     hiringOrganization: z
-      .object({ name: z.string().optional(), sameAs: z.string().optional() })
+      .object({ name: z.string().nullish(), sameAs: z.unknown().optional() })
       .passthrough()
-      .optional(),
-    provider: z.object({ name: z.string().optional() }).passthrough().optional(),
+      .nullish(),
+    provider: z.object({ name: z.string().nullish() }).passthrough().nullish(),
     jobLocation: z.unknown().optional(),
     applicantLocationRequirements: z.unknown().optional(),
   })
@@ -232,11 +271,33 @@ export function extractOpportunityFromHtml(input: {
   ].filter((value): value is string => Boolean(value));
   if (missing.length) return { method: structured ? "json_ld" : "generic_html", missing };
   const excerpt = pageText.slice(0, 1000);
+  const isGlobal = structured?.isGlobal ?? /worldwide|global applicants|all nationalities/i.test(pageText);
+  const summary = structured?.summary ?? excerpt;
+  const lifecycleStatus = deadline && deadline < now.toISOString().slice(0, 10) ? "expired" : "active";
+  const fundingCoverage = structured?.fundingCoverage ?? "not_stated";
+  const sponsorshipStatus = structured?.sponsorshipStatus ?? "not_stated";
   const parsed = discoveredOpportunitySchema.safeParse({
     ...structured,
     canonicalUrl,
     applicationUrl,
-    contentHash: hash(input.html),
+    contentHash: semanticContentHash({
+      sourceId: input.source.id,
+      canonicalUrl,
+      applicationUrl,
+      title,
+      organizationName,
+      opportunityTypeCode: type!,
+      destinationCountryCode: destination,
+      isGlobal,
+      summary,
+      applicationOpenDate: structured?.applicationOpenDate,
+      applicationDeadline: deadline,
+      rollingDeadline: rolling,
+      lifecycleStatus,
+      fundingCoverage,
+      sponsorshipStatus,
+      evidenceExcerpt: (structured?.summary ?? excerpt) || title,
+    }),
     title,
     normalizedTitle: title
       .toLowerCase()
@@ -245,13 +306,13 @@ export function extractOpportunityFromHtml(input: {
     organizationName,
     opportunityTypeCode: type,
     destinationCountryCode: destination,
-    isGlobal: structured?.isGlobal ?? /worldwide|global applicants|all nationalities/i.test(pageText),
-    summary: structured?.summary ?? excerpt,
+    isGlobal,
+    summary,
     applicationDeadline: deadline,
     rollingDeadline: rolling,
-    lifecycleStatus: deadline && deadline < now.toISOString().slice(0, 10) ? "expired" : "active",
-    fundingCoverage: structured?.fundingCoverage ?? "not_stated",
-    sponsorshipStatus: structured?.sponsorshipStatus ?? "not_stated",
+    lifecycleStatus,
+    fundingCoverage,
+    sponsorshipStatus,
     evidence: [
       {
         factPath: "opportunity.listing",
