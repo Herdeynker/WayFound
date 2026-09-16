@@ -58,7 +58,7 @@ Only variable names and non-secret defaults appear in `.env.example`:
 
 Secrets and real plan codes belong in ignored local configuration or the deployment secret manager. No Paystack public key is needed because checkout uses a hosted redirect. Test and live keys, plans and `PAYSTACK_ENVIRONMENT` must agree; a mismatch stops checkout.
 
-Create the three Paystack plans with the exact NGN kobo amounts and intervals, place their codes in the matching secure variables, configure the webhook URL as `/api/billing/webhook`, and invoke `POST /api/internal/billing` with the cron bearer secret. When configuration is incomplete, the UI and worker report an unavailable state and never simulate provider success.
+Create the three Paystack plans with the exact NGN kobo amounts and intervals, place their codes in the matching secure variables, and configure the webhook URL as `/api/billing/webhook`. `vercel.json` invokes `GET /api/internal/billing` hourly with Vercel's cron bearer secret; trusted non-Vercel schedulers may continue to use `POST`. When configuration is incomplete, the UI and worker report an unavailable state and never simulate provider success.
 
 ## Verification
 

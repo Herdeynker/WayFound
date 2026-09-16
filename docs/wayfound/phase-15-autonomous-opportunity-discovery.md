@@ -132,22 +132,25 @@ Suggested launch cadence:
 - registries: their approved refresh interval;
 - retry/cleanup: controlled backoff and daily maintenance.
 
-Production scheduler preparation is intentionally documented but not enabled. Each
-request must include `Authorization: Bearer <CRON_SECRET>` and use a deployment secret
-manager; no credential is placed in a cron expression. The canonical stage schedule is:
+Production discovery scheduling is declared in `vercel.json`. Vercel invokes these
+paths with `GET` and automatically sends `Authorization: Bearer <CRON_SECRET>` when
+the same secret is configured in the production deployment. No credential is placed
+in a cron expression. The enabled schedule is:
 
 | Stage | Cron (UTC) | Batch/limit | Retry and overlap rule |
 | --- | --- | --- | --- |
 | `query_generation` | `7 0 * * *` | one daily planner; at most 25 unique queries | one idempotency key per UTC day; skip an active lease |
-| `web_discovery` | `17,37,57 * * * *` | one queued query per invocation; max 20 results | quota RPC reserves one call; no paid fallback; retry only bounded rate/timeout failures |
+| `web_discovery` | `17 * * * *` | one queued query per invocation; max 20 results | 24 calls/day is below the 25-call hard cap; quota RPC still reserves every call; no paid fallback |
 | `known_source_monitoring` | `11 */6 * * *` | registered sources due for refresh | one lease per source; disable after bounded consecutive failures |
-| `lead_resolution` through `notification` | `*/15 * * * *` | max 10 leads per worker invocation | `SKIP LOCKED`, three job attempts, exponential retry and dead-letter state |
-| `recheck` | `23 * * * *` | due opportunities only | one opportunity lease; preserve unchanged/expired/withdrawn outcome |
-| `retry` | `41 * * * *` | due retry jobs only | backoff; no overlap for the same job idempotency key |
-| `cleanup` | `13 3 * * *` | terminal jobs beyond retention | service-only maintenance; never delete published evidence from normal cleanup |
+| `lead_resolution` | `*/15 * * * *` | max 10 leads per worker invocation; the service completes retrieval through notification as one bounded pipeline | lead leases prevent overlapping work and failures enter bounded retry/dead-letter state |
 
-These schedules remain a launch checklist. The development pilot was bounded manually and
-does not authorize production discovery activation.
+Lifecycle recheck and maintenance tables remain present, but no Vercel schedule is declared
+for `recheck`, `retry` or `cleanup` until their dedicated handlers and overlap tests exist.
+Routing those names through the generic lead processor would create a misleading successful
+cron run, so production configuration fails closed instead.
+
+The schedule activates only on a production deployment with the discovery feature flag and
+server-only provider credentials configured.
 
 No job depends on a developer laptop. The hosting scheduler must send `Authorization: Bearer <CRON_SECRET>`.
 

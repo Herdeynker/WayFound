@@ -5,6 +5,7 @@ import { isCronRequestAuthorized } from "@/server/security/cron-auth";
 import { getCorrelationId } from "@/server/security/request";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 export async function POST(request: Request) {
   const env = parseServerEnvironment();
@@ -23,3 +24,6 @@ export async function POST(request: Request) {
     );
   }
 }
+
+// Vercel Cron invokes configured paths with GET. Keep POST for other trusted schedulers.
+export const GET = POST;

@@ -1,0 +1,29 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "crons": [
+    {
+      "path": "/api/internal/discovery/query_generation",
+      "schedule": "7 0 * * *"
+    },
+    {
+      "path": "/api/internal/discovery/web_discovery",
+      "schedule": "17 * * * *"
+    },
+    {
+      "path": "/api/internal/discovery/known_source_monitoring",
+      "schedule": "11 */6 * * *"
+    },
+    {
+      "path": "/api/internal/discovery/lead_resolution",
+      "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/internal/billing",
+      "schedule": "7 * * * *"
+    },
+    {
+      "path": "/api/internal/notifications",
+      "schedule": "*/10 * * * *"
+    }
+  ]
+}

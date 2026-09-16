@@ -38,7 +38,7 @@ Configure the Telegram bot webhook to send HTTPS updates to `/api/notifications/
 
 ## Worker operation
 
-Invoke `POST /api/internal/notifications` from an external scheduler with `Authorization: Bearer <CRON_SECRET>`. Keep the schedule frequent enough for instant alerts while allowing the database to enforce daily, weekly, deadline-only and quiet-hour timing. Claims use short leases so an interrupted run can be retried. Provider calls have a bounded timeout and retry; repeated or permanent failures become explicit terminal states rather than false successes.
+`vercel.json` invokes `GET /api/internal/notifications` every ten minutes. Vercel supplies `Authorization: Bearer <CRON_SECRET>` when the production secret is configured; trusted non-Vercel schedulers may continue to invoke `POST`. The database still enforces daily, weekly, deadline-only and quiet-hour timing. Claims use short leases so an interrupted run can be retried. Provider calls have a bounded timeout and retry; repeated or permanent failures become explicit terminal states rather than false successes.
 
 ## Consent and lifecycle
 
