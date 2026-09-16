@@ -277,7 +277,7 @@ export function DocumentLibrary({
         }}
       >
         <FormField label="Document">
-          <Input accept=".pdf,.docx,.jpg,.jpeg,.png" capture="environment" name="file" required type="file" />
+          <Input accept="application/pdf,.pdf" capture="environment" name="file" required type="file" />
         </FormField>
         <FormField label="Document type">
           <Input
@@ -321,7 +321,7 @@ export function DocumentLibrary({
             </Button>
           </div>
         ) : null}
-        <p className="upload-hint">PDF, DOCX, JPG or PNG · up to 10 MB · camera supported on mobile.</p>
+        <p className="upload-hint">PDF only · up to 10 MB · camera supported on mobile.</p>
       </form>
       {recovery ? (
         <StateNotice

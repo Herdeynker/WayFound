@@ -23,7 +23,7 @@ import {
 } from "./model";
 import { calculateCompletion, findContradictions } from "@/server/passport/completion";
 
-type Props = { fixture?: boolean };
+type Props = { fixture?: boolean; afterConfirmHref?: "/dashboard" | "/pricing?onboarding=complete" };
 const sectionLabels: Record<SectionId, string> = {
   goals: "Your goals",
   origin: "About you",
@@ -41,7 +41,10 @@ const sectionLabels: Record<SectionId, string> = {
 const inputRecord = <T extends object>(record: T, key: keyof T, value: unknown): T =>
   ({ ...record, [key]: value }) as T;
 
-export function PassportWizard({ fixture = false }: Props) {
+export function PassportWizard({
+  fixture = false,
+  afterConfirmHref = "/pricing?onboarding=complete",
+}: Props) {
   const [state, setState] = useState<PassportState>(() =>
     fixture ? { ...emptyPassportState, selectedGoals: [] } : emptyPassportState,
   );
@@ -120,6 +123,10 @@ export function PassportWizard({ fixture = false }: Props) {
       setMessage("Resolve the highlighted contradictions before confirming.");
       return;
     }
+    if (completion.overall !== 100) {
+      setMessage(`Complete the required profile sections before continuing (${completion.overall}% ready).`);
+      return;
+    }
     if (fixture) {
       setMessage("Fixture review confirmed. In production this creates an immutable Passport version.");
       return;
@@ -137,7 +144,28 @@ export function PassportWizard({ fixture = false }: Props) {
       return;
     }
     setSaveState("saved");
-    setMessage("Your Passport is confirmed and versioned. You can keep improving it from your dashboard.");
+    setMessage("Your Passport is confirmed. Taking you to plan selection…");
+    window.location.assign(afterConfirmHref);
+  }
+
+  async function saveAndLeave() {
+    if (fixture) {
+      window.location.assign("/dashboard");
+      return;
+    }
+    setSaveState("saving");
+    const saved = await fetch("/api/passport", {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ state, currentSection: current }),
+    });
+    if (!saved.ok) {
+      setSaveState("error");
+      setMessage("We could not save this step. Retry before leaving.");
+      return;
+    }
+    await fetch("/api/auth/logout", { method: "POST", headers: { "content-type": "application/json" } });
+    window.location.assign("/login?resume=1");
   }
 
   if (loading)
@@ -158,9 +186,9 @@ export function PassportWizard({ fixture = false }: Props) {
           <h1>Build a profile that travels with you.</h1>
           <p>Answer what matters for your goals. You can save, step back and return whenever you need.</p>
         </div>
-        <a className="passport-exit" href="/dashboard">
-          Return to dashboard
-        </a>
+        <button className="passport-exit" onClick={saveAndLeave} type="button">
+          {fixture ? "Return to dashboard" : "Save and finish later"}
+        </button>
       </div>
       <div className="passport-layout">
         <aside className="passport-progress" aria-label="Passport sections">
@@ -235,7 +263,7 @@ export function PassportWizard({ fixture = false }: Props) {
               Back
             </Button>
             {current === "review" ? (
-              <Button onClick={confirm} variant="primary">
+              <Button disabled={completion.overall !== 100} onClick={confirm} variant="primary">
                 Confirm my Passport <span aria-hidden="true">→</span>
               </Button>
             ) : (
@@ -895,10 +923,9 @@ function DocumentsSection({
           documents.
         </p>
         <label className="passport-file-input">
-          Choose CV or take a document photo
+          Choose a PDF CV
           <input
-            accept="application/pdf,.docx,image/jpeg,image/png"
-            capture="environment"
+            accept="application/pdf,.pdf"
             onChange={(event) => {
               const file = event.target.files?.[0];
               if (file) void uploadFile(file);
@@ -913,7 +940,7 @@ function DocumentsSection({
               ? "Uploaded privately. No public URL was created."
               : upload === "failed"
                 ? "Upload failed. Check the file and retry."
-                : "PDF, DOCX, JPG or PNG · up to 10 MB"}
+                : "PDF only · up to 10 MB"}
         </p>
       </div>
       <fieldset>

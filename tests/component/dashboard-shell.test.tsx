@@ -30,10 +30,31 @@ describe("Phase 1 dashboard shell", () => {
     render(<DashboardShell />);
 
     expect(screen.getAllByRole("link", { name: "Home" })[0]).toHaveAttribute("aria-current", "page");
-    expect(screen.getAllByRole("link", { name: "Notifications" })).toHaveLength(2);
+    expect(screen.getByRole("link", { name: "Opportunities" })).toHaveAttribute("href", "/opportunities");
+    expect(screen.getByRole("link", { name: "My Applications" })).toHaveAttribute("href", "/applications");
+    expect(screen.getAllByRole("link", { name: "Profile" })[0]).toHaveAttribute("href", "/settings/account");
+    expect(screen.getAllByRole("link", { name: "Notifications" })).toHaveLength(3);
     expect(screen.getAllByRole("button", { name: /Save/ })).toHaveLength(3);
     expect(screen.getByRole("navigation", { name: "Primary navigation" })).toBeInTheDocument();
     expect(screen.getByRole("navigation", { name: "Mobile navigation" })).toBeInTheDocument();
+  });
+
+  it("uses real account data and real destination photographs when a server model is supplied", () => {
+    render(
+      <DashboardShell
+        model={{
+          ...dashboardFixture,
+          user: { firstName: "Adeyinka", avatarLabel: "Adeyinka" },
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("heading", { name: "Good morning, Adeyinka" })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Good morning, Amara" })).not.toBeInTheDocument();
+    expect(screen.getByRole("img", { name: "Tiananmen Gate in Beijing, China" })).toHaveAttribute(
+      "src",
+      expect.stringContaining("beijing-tiananmen.jpg"),
+    );
   });
 });
 

@@ -53,35 +53,26 @@ export const applicationReminderSchema = z
   .strict();
 export const checklistUpdateSchema = z.object({ completed: z.boolean() }).strict();
 
-const allowedFiles = new Map([
-  ["application/pdf", ".pdf"],
-  ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".docx"],
-  ["image/jpeg", ".jpg"],
-  ["image/png", ".png"],
-]);
 const maximumDocumentBytes = 10 * 1024 * 1024;
 
 export type ValidatedDocument = { extension: string; checksum: string };
-
-function signatureMatches(bytes: Uint8Array, mime: string) {
-  if (mime === "application/pdf") return new TextDecoder().decode(bytes.slice(0, 4)) === "%PDF";
-  if (mime === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  if (mime === "image/png") return bytes.slice(0, 8).join(",") === "137,80,78,71,13,10,26,10";
-  return bytes.slice(0, 4).join(",") === "80,75,3,4";
-}
 
 export function validateDocumentUpload(
   file: { name: string; type: string; size: number },
   bytes: Uint8Array,
 ): ValidatedDocument {
-  const extension = allowedFiles.get(file.type);
-  if (!extension || file.size <= 0 || file.size > maximumDocumentBytes || bytes.length !== file.size)
-    throw new Error("Use a PDF, DOCX, JPG or PNG under 10 MB.");
-  if (!signatureMatches(bytes, file.type))
+  const extension = ".pdf";
+  if (
+    file.type !== "application/pdf" ||
+    file.size <= 0 ||
+    file.size > maximumDocumentBytes ||
+    bytes.length !== file.size
+  )
+    throw new Error("Use a PDF under 10 MB.");
+  if (new TextDecoder().decode(bytes.slice(0, 4)) !== "%PDF")
     throw new Error("The file signature does not match its declared type.");
   const lowerName = file.name.toLowerCase();
-  if (!lowerName.endsWith(extension) && !(extension === ".jpg" && lowerName.endsWith(".jpeg")))
-    throw new Error("The file extension does not match its declared type.");
+  if (!lowerName.endsWith(extension)) throw new Error("The file extension does not match its declared type.");
   return { extension, checksum: createHash("sha256").update(bytes).digest("hex") };
 }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo, useState } from "react";
 import type {
@@ -54,15 +55,14 @@ export function OpportunityFeed({ initial, query }: { initial: FeedResult; query
     const prior = items;
     setItems((current) =>
       type === "match_dismissed"
-        ? current.filter((card) => card.matchId !== item.matchId)
-        : current.map((card) =>
-            card.matchId === item.matchId ? { ...card, saved: type === "match_saved" } : card,
-          ),
+        ? current.filter((card) => card.id !== item.id)
+        : current.map((card) => (card.id === item.id ? { ...card, saved: type === "match_saved" } : card)),
     );
+    const identifier = item.matchId ? { matchId: item.matchId } : { opportunityId: item.id };
     const response = await fetch("/api/opportunities/feedback", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ matchId: item.matchId, eventType: type, idempotencyKey: crypto.randomUUID() }),
+      body: JSON.stringify({ ...identifier, eventType: type, idempotencyKey: crypto.randomUUID() }),
     });
     if (!response.ok) {
       setItems(prior);
@@ -120,7 +120,11 @@ export function OpportunityFeed({ initial, query }: { initial: FeedResult; query
         onSubmit={(event) => {
           event.preventDefault();
           const data = new FormData(event.currentTarget);
-          update({ q: String(data.get("q") ?? "").trim(), sort: String(data.get("sort") ?? "best") });
+          update({
+            q: String(data.get("q") ?? "").trim(),
+            sort: String(data.get("sort") ?? "best"),
+            tab: String(data.get("tab") ?? "for_you"),
+          });
         }}
       >
         <SearchInput
@@ -133,6 +137,12 @@ export function OpportunityFeed({ initial, query }: { initial: FeedResult; query
           <option value="deadline">Deadline soonest</option>
           <option value="recent">Recently verified</option>
           <option value="readiness">Readiness</option>
+        </Select>
+        <Select aria-label="Opportunity view" defaultValue={query.tab ?? "for_you"} name="tab">
+          <option value="for_you">For You</option>
+          <option value="latest">Latest</option>
+          <option value="closing_soon">Closing Soon</option>
+          <option value="explore_all">Explore All</option>
         </Select>
         <Button type="submit" variant="teal">
           Search
@@ -160,7 +170,7 @@ export function OpportunityFeed({ initial, query }: { initial: FeedResult; query
         {items.map((item) => (
           <OpportunityCard
             item={item}
-            key={item.matchId}
+            key={item.id}
             onDismiss={() => event(item, "match_dismissed")}
             onSave={() => event(item, item.saved ? "match_unsaved" : "match_saved")}
           />
@@ -261,8 +271,28 @@ export function OpportunityCard({
     item.decision !== "allow" || item.sponsorship.includes("only") || item.sponsorship.includes("not stated");
   return (
     <article className="explore-card">
+      {item.imageSrc ? (
+        <Image
+          alt={item.imageAlt ?? `${item.destination} destination`}
+          className="explore-card-image"
+          height={180}
+          loading="lazy"
+          src={item.imageSrc}
+          width={320}
+        />
+      ) : null}
       <div className="explore-card-top">
-        <Badge tone="teal">{item.type}</Badge>
+        <div className="explore-card-badges">
+          <Badge tone="teal">{item.type}</Badge>
+          {item.isClosingSoon ? <Badge tone="amber">Closing soon</Badge> : null}
+          <Badge tone="slate">
+            {item.basis === "personalized"
+              ? "For you"
+              : item.basis === "goal_related"
+                ? "Based on your goals"
+                : "Explore more"}
+          </Badge>
+        </div>
         <div>
           <IconButton
             icon="bookmark"
@@ -279,14 +309,20 @@ export function OpportunityCard({
         {item.organization} · {item.destination}
       </p>
       <div className="fit-row">
-        <strong>{item.matchScore}%</strong>
-        <span>Fit score</span>
+        {item.matchScore === null ? (
+          <strong className="fit-score-unknown">Match pending</strong>
+        ) : (
+          <>
+            <strong>{item.matchScore}%</strong>
+            <span>Fit score</span>
+          </>
+        )}
         <Badge tone={item.eligibility === "eligible" ? "teal" : "amber"}>
           {outcomeLabel(item.eligibility)}
         </Badge>
       </div>
       <p className="reason-line">
-        <Icon name="spark" size={18} /> {item.reason ?? "Match details are available in the explanation."}
+        <Icon name="spark" size={18} /> {item.reason ?? "Complete your Passport to calculate your match."}
       </p>
       <p className="deadline-line">
         <Icon name="calendar" size={18} /> {deadlineLabel(item)}
@@ -324,8 +360,14 @@ export function OpportunityDetail({
           {card.organization} · {card.destination}
         </p>
         <div className="fit-row">
-          <strong>{card.matchScore}%</strong>
-          <span>Fit score, not a probability</span>
+          {card.matchScore === null ? (
+            <strong className="fit-score-unknown">Complete Passport to calculate your match</strong>
+          ) : (
+            <>
+              <strong>{card.matchScore}%</strong>
+              <span>Fit score, not a probability</span>
+            </>
+          )}
         </div>
       </header>
       <DetailSection title="Why this matches">
@@ -402,7 +444,7 @@ export function OpportunityDetail({
           </p>
         )}
         <div className="workspace-action">
-          <CreateApplicationButton matchId={card.matchId} />
+          {card.matchId ? <CreateApplicationButton matchId={card.matchId} /> : null}
           <p>Creates a private preparation workspace only. WAYFOUND never submits an application for you.</p>
         </div>
       </DetailSection>

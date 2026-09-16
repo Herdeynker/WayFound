@@ -9,6 +9,10 @@ test.describe("Phase 1 dashboard shell", () => {
     await expect(page.getByRole("img", { name: "Your next step is a bigger story." })).toBeVisible();
     await expect(page.getByRole("img", { name: "A brighter tomorrow. A wider you." })).toBeVisible();
     await expect(page.getByRole("link", { name: "Home" }).first()).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("link", { name: "Opportunities" })).toHaveAttribute("href", "/opportunities");
+    await expect(page.getByRole("img", { name: "Tiananmen Gate in Beijing, China" })).toBeVisible();
+    await expect(page.getByRole("img", { name: "Brandenburg Gate in Berlin, Germany" })).toBeVisible();
+    await expect(page.getByRole("img", { name: "Toronto skyline in Ontario, Canada" })).toBeVisible();
   });
 
   test("desktop navigation and action card stay separated at reference heights", async ({
@@ -25,7 +29,9 @@ test.describe("Phase 1 dashboard shell", () => {
       await page.goto("/dashboard");
 
       const geometry = await page.evaluate(() => {
-        const profile = document.querySelector('.sidebar-link[href="#profile"]')?.getBoundingClientRect();
+        const profile = document
+          .querySelector('.sidebar-link[href="/settings/account"]')
+          ?.getBoundingClientRect();
         const signature = document.querySelector(".sidebar-signature")?.getBoundingClientRect();
         const title = document.querySelector(".next-action-card h2")?.getBoundingClientRect();
         const illustration = document

@@ -7,7 +7,8 @@ import { getRequestIdentifier } from "@/server/security/request";
 
 const feedbackSchema = z
   .object({
-    matchId: z.string().uuid(),
+    matchId: z.string().uuid().optional(),
+    opportunityId: z.string().uuid().optional(),
     eventType: z.enum([
       "match_saved",
       "match_unsaved",
@@ -18,7 +19,10 @@ const feedbackSchema = z
     ]),
     idempotencyKey: z.string().uuid(),
   })
-  .strict();
+  .strict()
+  .refine((value) => Boolean(value.matchId) !== Boolean(value.opportunityId), {
+    message: "Exactly one opportunity or match identifier is required.",
+  });
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
@@ -43,9 +47,33 @@ export async function POST(request: NextRequest) {
     );
   const parsed = feedbackSchema.safeParse(await request.json().catch(() => null));
   if (!parsed.success) return NextResponse.json({ error: "Invalid feedback request." }, { status: 400 });
+  if (parsed.data.opportunityId) {
+    if (parsed.data.eventType === "match_unsaved") {
+      const result = await client
+        .from("opportunity_user_states")
+        .delete()
+        .eq("user_id", user.id)
+        .eq("opportunity_id", parsed.data.opportunityId);
+      if (result.error)
+        return NextResponse.json({ error: "We could not save that change." }, { status: 500 });
+      return response;
+    }
+    if (!["match_saved", "match_dismissed"].includes(parsed.data.eventType))
+      return NextResponse.json({ error: "Invalid opportunity state change." }, { status: 400 });
+    const result = await client.from("opportunity_user_states").upsert(
+      {
+        user_id: user.id,
+        opportunity_id: parsed.data.opportunityId,
+        state: parsed.data.eventType === "match_saved" ? "saved" : "dismissed",
+      },
+      { onConflict: "user_id,opportunity_id" },
+    );
+    if (result.error) return NextResponse.json({ error: "We could not save that change." }, { status: 500 });
+    return response;
+  }
   const result = await client.from("match_feedback_events").insert({
     user_id: user.id,
-    match_evaluation_id: parsed.data.matchId,
+    match_evaluation_id: parsed.data.matchId!,
     event_type: parsed.data.eventType,
     idempotency_key: parsed.data.idempotencyKey,
     metadata: {},

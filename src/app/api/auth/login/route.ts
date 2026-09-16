@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   const next =
     typeof (body as { next?: unknown })?.next === "string" ? (body as { next: string }).next : null;
   const destination = (await hasCurrentRequiredConsent(client, data.user.id))
-    ? getSafeRedirectPath(next, "/dashboard")
+    ? getSafeRedirectPath(next, "/")
     : "/consent";
   return NextResponse.json({ ok: true, redirectTo: destination }, { headers: response.headers });
 }

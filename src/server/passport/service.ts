@@ -25,6 +25,21 @@ export async function getPassportDraft(client: Client, userId: string) {
   };
 }
 
+export async function hasCompletedPassport(client: Client, userId: string): Promise<boolean> {
+  const [progress, version] = await Promise.all([
+    client.from("onboarding_progress").select("completion").eq("user_id", userId).maybeSingle(),
+    client
+      .from("profile_versions")
+      .select("id")
+      .eq("user_id", userId)
+      .order("version_number", { ascending: false })
+      .limit(1),
+  ]);
+  return (
+    !progress.error && !version.error && progress.data?.completion === 100 && Boolean(version.data?.length)
+  );
+}
+
 export async function savePassportDraft(
   client: Client,
   userId: string,
@@ -66,8 +81,13 @@ export async function confirmPassport(
   if (!parsed.success) throw new Error("Please review the highlighted Passport fields.");
   const normalized = parsed.data;
   const contradictions = findContradictions(normalized);
+  const completion = calculateCompletion(normalized);
   if (contradictions.length)
     throw new Error("Please resolve the contradictory dates or scores before confirming.");
+  if (completion.overall !== 100)
+    throw new Error(
+      `Complete the required profile sections before confirming (${completion.overall}% ready).`,
+    );
 
   const profile = await client
     .from("profiles")
@@ -255,5 +275,17 @@ export async function confirmPassport(
     snapshot: normalized as unknown as Json,
   });
   if (snapshotError) throw new Error("Your Passport was saved, but its version could not be created.");
-  return calculateCompletion(normalized);
+  const { error: progressError } = await client.from("onboarding_progress").upsert(
+    {
+      user_id: userId,
+      selected_goal_types: normalized.selectedGoals,
+      current_section: "review",
+      draft: normalized as unknown as Json,
+      completion: completion.overall,
+      revision: (latest?.version_number ?? 0) + 1,
+    },
+    { onConflict: "user_id" },
+  );
+  if (progressError) throw new Error("Your Passport was versioned, but completion could not be confirmed.");
+  return completion;
 }

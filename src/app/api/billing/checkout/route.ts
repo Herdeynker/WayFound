@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { checkoutRequestSchema } from "@/server/billing/model";
 import { initializeCheckout } from "@/server/billing/service";
 import { BillingProviderError } from "@/server/billing/provider";
-import { getCurrentUser } from "@/server/auth/service";
+import { getCurrentUser, hasCurrentRequiredConsent } from "@/server/auth/service";
+import { hasCompletedPassport } from "@/server/passport/service";
 import { consumeRateLimit } from "@/server/security/rate-limit";
 import { getRequestIdentifier } from "@/server/security/request";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
@@ -12,6 +13,11 @@ export async function POST(request: NextRequest) {
   const client = createSupabaseRouteClient(request, response);
   const user = await getCurrentUser(client);
   if (!user) return NextResponse.json({ error: "Please sign in to choose a plan." }, { status: 401 });
+  if (!(await hasCurrentRequiredConsent(client, user.id)) || !(await hasCompletedPassport(client, user.id)))
+    return NextResponse.json(
+      { error: "Complete and confirm your Opportunity Passport before choosing a plan." },
+      { status: 403 },
+    );
   if (
     !(
       await consumeRateLimit("billing.checkout", `${user.id}:${getRequestIdentifier(request)}`, 4, 5 * 60_000)

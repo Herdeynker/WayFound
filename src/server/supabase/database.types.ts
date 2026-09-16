@@ -2352,6 +2352,72 @@ export type Database = {
         }
         Relationships: []
       }
+      destination_media: {
+        Row: {
+          alt_text: string
+          asset_path: string
+          attribution: string | null
+          city_name: string | null
+          country_code: string
+          created_at: string
+          focal_point: string
+          height: number
+          id: string
+          is_active: boolean
+          licence: string
+          original_source_url: string
+          photographer: string | null
+          priority: number
+          provider: string
+          region_name: string | null
+          updated_at: string
+          verified_at: string
+          width: number
+        }
+        Insert: {
+          alt_text: string
+          asset_path: string
+          attribution?: string | null
+          city_name?: string | null
+          country_code: string
+          created_at?: string
+          focal_point?: string
+          height: number
+          id?: string
+          is_active?: boolean
+          licence: string
+          original_source_url: string
+          photographer?: string | null
+          priority?: number
+          provider: string
+          region_name?: string | null
+          updated_at?: string
+          verified_at?: string
+          width: number
+        }
+        Update: {
+          alt_text?: string
+          asset_path?: string
+          attribution?: string | null
+          city_name?: string | null
+          country_code?: string
+          created_at?: string
+          focal_point?: string
+          height?: number
+          id?: string
+          is_active?: boolean
+          licence?: string
+          original_source_url?: string
+          photographer?: string | null
+          priority?: number
+          provider?: string
+          region_name?: string | null
+          updated_at?: string
+          verified_at?: string
+          width?: number
+        }
+        Relationships: []
+      }
       document_metadata: {
         Row: {
           category: string
@@ -5966,6 +6032,42 @@ export type Database = {
         }
         Relationships: []
       }
+      opportunity_user_states: {
+        Row: {
+          opportunity_id: string
+          state: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          opportunity_id: string
+          state: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          opportunity_id?: string
+          state?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "opportunity_user_states_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "opportunities"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "opportunity_user_states_opportunity_id_fkey"
+            columns: ["opportunity_id"]
+            isOneToOne: false
+            referencedRelation: "safe_active_opportunities"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       opportunity_versions: {
         Row: {
           content_hash: string | null
@@ -6693,6 +6795,27 @@ export type Database = {
         }
         Relationships: []
       }
+      user_checklist_state: {
+        Row: {
+          collapsed_at: string | null
+          dismissed_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          collapsed_at?: string | null
+          dismissed_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          collapsed_at?: string | null
+          dismissed_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_consents: {
         Row: {
           consent_type: string
@@ -6802,6 +6925,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_walkthrough_state: {
+        Row: {
+          completed_at: string | null
+          dismissed_at: string | null
+          started_at: string | null
+          updated_at: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          completed_at?: string | null
+          dismissed_at?: string | null
+          started_at?: string | null
+          updated_at?: string
+          user_id: string
+          version: string
+        }
+        Update: {
+          completed_at?: string | null
+          dismissed_at?: string | null
+          started_at?: string | null
+          updated_at?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: []
       }
     }
     Views: {

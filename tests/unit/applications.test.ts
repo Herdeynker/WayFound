@@ -10,7 +10,22 @@ describe("Phase 9 document and application rules", () => {
     ).toHaveLength(64);
     expect(() =>
       validateDocumentUpload({ name: "passport.pdf", type: "image/png", size: pdf.length }, pdf),
-    ).toThrow(/signature/);
+    ).toThrow(/PDF under 10 MB/);
+    const docx = new Uint8Array([0x50, 0x4b, 0x03, 0x04]);
+    expect(() =>
+      validateDocumentUpload(
+        {
+          name: "passport.docx",
+          type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          size: docx.length,
+        },
+        docx,
+      ),
+    ).toThrow(/PDF under 10 MB/);
+    const jpeg = new Uint8Array([0xff, 0xd8, 0xff]);
+    expect(() =>
+      validateDocumentUpload({ name: "passport.jpg", type: "image/jpeg", size: jpeg.length }, jpeg),
+    ).toThrow(/PDF under 10 MB/);
     expect(() =>
       validateDocumentUpload({ name: "passport.exe", type: "application/pdf", size: pdf.length }, pdf),
     ).toThrow(/extension/);

@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+const evidenceDirectory = process.env.PHASE2_EVIDENCE_DIR ?? "artifacts/phase-9";
+
 test.describe("@visual Phase 2 visual evidence", () => {
   test("captures the mobile-first authentication surfaces", async ({ page }, testInfo) => {
     test.skip(
@@ -11,6 +13,7 @@ test.describe("@visual Phase 2 visual evidence", () => {
       [390, 844, "/login", "login-mobile-390x844"],
       [390, 844, "/register", "register-mobile-390x844"],
       [390, 844, "/forgot-password", "forgot-password-mobile-390x844"],
+      [1440, 900, "/consent", "consent-desktop-1440x900"],
       [390, 844, "/consent", "consent-mobile-390x844"],
       [1440, 900, "/settings/account", "account-settings-desktop-1440x900"],
       [390, 844, "/settings/account", "account-settings-mobile-390x844"],
@@ -20,14 +23,14 @@ test.describe("@visual Phase 2 visual evidence", () => {
       await page.goto(path);
       await expect(page.locator("body")).toBeVisible();
       await page.screenshot({
-        path: `artifacts/phase-9/regression-phase2-${name}.png`,
+        path: `${evidenceDirectory}/regression-phase2-${name}.png`,
         fullPage: false,
       });
     }
     await page.getByRole("button", { name: "Request account deletion" }).click();
     await expect(page.getByRole("dialog", { name: "Request account deletion?" })).toBeVisible();
     await page.screenshot({
-      path: "artifacts/phase-9/regression-phase2-deletion-confirmation-mobile-390x844.png",
+      path: `${evidenceDirectory}/regression-phase2-deletion-confirmation-mobile-390x844.png`,
       fullPage: false,
     });
   });

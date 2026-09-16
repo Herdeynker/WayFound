@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { loadEnvConfig } from "@next/env";
-import { afterAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { processDiscoveryLeads } from "@/server/discovery/service";
 import type {
   AutonomousDiscoveryStore,
@@ -25,6 +25,7 @@ type DbResult<T> = { data: T | null; error: { code?: string } | null; count?: nu
 interface Query<T = unknown> extends PromiseLike<DbResult<T>> {
   select(columns?: string, options?: { count?: "exact"; head?: boolean }): Query<T>;
   eq(column: string, value: unknown): Query<T>;
+  like(column: string, pattern: string): Query<T>;
   in(column: string, values: readonly unknown[]): Query<T>;
   order(column: string, options?: { ascending?: boolean }): Query<T>;
   limit(count: number): Query<T>;
@@ -239,7 +240,55 @@ const cleanup = {
   jobIds: [] as string[],
 };
 
+async function suppressSyntheticPhase15Records() {
+  if (!rawAdmin) return;
+  const synthetic = (await rawAdmin
+    .from("opportunities")
+    .select("id")
+    .like("canonical_duplicate_key", "phase15:%")
+    .like("original_source_url", "https://phase15-%.example.test/%")) as DbResult<Array<{ id: string }>>;
+  expect(synthetic.error).toBeNull();
+  const opportunities = await rawAdmin
+    .from("opportunities")
+    .update({
+      lifecycle_status: "suppressed",
+      publication_status: "fixture",
+      evidence_status: "fixture",
+      is_fixture: true,
+    })
+    .like("canonical_duplicate_key", "phase15:%")
+    .like("original_source_url", "https://phase15-%.example.test/%");
+  expect(opportunities.error).toBeNull();
+  const sources = await rawAdmin
+    .from("source_registry")
+    .update({
+      source_type: "fixture",
+      is_official_source: false,
+      is_allowed: false,
+      discovery_method: "fixture",
+      robots_policy_status: "review_required",
+      terms_review_status: "not_reviewed",
+      active: false,
+      is_fixture: true,
+    })
+    .like("canonical_domain", "phase15-%.example.test");
+  expect(sources.error).toBeNull();
+  if (synthetic.data?.length) {
+    const visible = await rawAdmin
+      .from("safe_active_opportunities")
+      .select("id")
+      .in(
+        "id",
+        synthetic.data.map((item) => item.id),
+      );
+    expect(visible.error).toBeNull();
+    expect(visible.data).toHaveLength(0);
+  }
+}
+
 describe("Phase 15 hosted schema and RLS", () => {
+  beforeAll(suppressSyntheticPhase15Records, 30_000);
+
   hostedCase("keeps the verified starter registry bounded and honest", async () => {
     if (!rawAdmin) throw new Error("Hosted client unavailable");
     const result = (await rawAdmin
@@ -284,6 +333,7 @@ describe("Phase 15 hosted schema and RLS", () => {
 
   afterAll(async () => {
     if (!rawAdmin || !admin) return;
+    await suppressSyntheticPhase15Records();
     for (const user of cleanup.users) await admin.auth.admin.deleteUser(user);
     for (const id of cleanup.opportunityIds) {
       const deleted = await rawAdmin.from("opportunities").delete().eq("id", id);

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
   if (!user) return NextResponse.redirect(new URL("/login?error=invalid_link", request.url));
   await bootstrapAccount(client, user);
   await recordAudit(client, user.id, "email_verification_requested", { method: "callback" });
-  const next = getSafeRedirectPath(request.nextUrl.searchParams.get("next"), "/dashboard");
+  const next = getSafeRedirectPath(request.nextUrl.searchParams.get("next"), "/");
   const destination = (await hasCurrentRequiredConsent(client, user.id)) ? next : "/consent";
   return NextResponse.redirect(new URL(destination, request.url), { headers: response.headers });
 }

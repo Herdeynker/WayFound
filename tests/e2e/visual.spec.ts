@@ -1,5 +1,7 @@
 import { expect, test } from "@playwright/test";
 
+const evidenceDirectory = process.env.PHASE1_EVIDENCE_DIR ?? "artifacts/phase-9";
+
 test.describe("@visual Phase 1 visual evidence", () => {
   test.setTimeout(120_000);
 
@@ -21,7 +23,7 @@ test.describe("@visual Phase 1 visual evidence", () => {
       await page.goto("/dashboard");
       await expect(page.locator("body")).toBeVisible();
       await page.screenshot({
-        path: `artifacts/phase-9/regression-phase1-${name}.png`,
+        path: `${evidenceDirectory}/regression-phase1-${name}.png`,
         fullPage: false,
       });
     }

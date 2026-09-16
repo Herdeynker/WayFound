@@ -1,12 +1,10 @@
 import { test } from "@playwright/test";
 import type { Page } from "@playwright/test";
 
+const evidenceDirectory = process.env.PHASE3_EVIDENCE_DIR ?? "artifacts/phase-9";
+
 async function captureEvidence(page: Page, path: string) {
-  try {
-    await page.screenshot({ path, fullPage: true });
-  } catch {
-    await page.screenshot({ path: path.replace(/\.png$/, "-retry.png"), fullPage: true });
-  }
+  await page.screenshot({ path, fullPage: true });
 }
 
 test("@visual goal selection", async ({ page }, testInfo) => {
@@ -14,7 +12,7 @@ test("@visual goal selection", async ({ page }, testInfo) => {
   await page.goto("/onboarding");
   await captureEvidence(
     page,
-    `artifacts/phase-9/regression-phase3-goal-selection-${testInfo.project.name}.png`,
+    `${evidenceDirectory}/regression-phase3-goal-selection-${testInfo.project.name}.png`,
   );
 });
 
@@ -25,5 +23,5 @@ test("@visual academic and review states", async ({ page }, testInfo) => {
   await page.getByRole("button", { name: /Save and continue/i }).click();
   await page.getByRole("button", { name: /Save and continue/i }).click();
   await page.getByRole("button", { name: /Save and continue/i }).click();
-  await captureEvidence(page, `artifacts/phase-9/regression-phase3-academic-${testInfo.project.name}.png`);
+  await captureEvidence(page, `${evidenceDirectory}/regression-phase3-academic-${testInfo.project.name}.png`);
 });

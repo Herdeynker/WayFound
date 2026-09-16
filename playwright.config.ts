@@ -1,6 +1,8 @@
 import { defineConfig, devices } from "@playwright/test";
 
 const port = process.env.PLAYWRIGHT_PORT ?? "3000";
+const productionServer = process.env.PLAYWRIGHT_SERVER_MODE === "production";
+const externalServer = process.env.PLAYWRIGHT_EXTERNAL_SERVER === "1";
 
 export default defineConfig({
   testDir: "./tests/e2e",
@@ -14,13 +16,17 @@ export default defineConfig({
     trace: "on-first-retry",
     extraHTTPHeaders: { "x-wayfound-test-auth": "phase2-static-fixture" },
   },
-  webServer: {
-    command: `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
-    url: `http://127.0.0.1:${port}/health`,
-    reuseExistingServer: !process.env.CI,
-    env: { PLAYWRIGHT_TEST: "1" },
-    timeout: 120_000,
-  },
+  webServer: externalServer
+    ? undefined
+    : {
+        command: productionServer
+          ? `node node_modules/next/dist/bin/next start --hostname 127.0.0.1 --port ${port}`
+          : `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
+        url: `http://127.0.0.1:${port}/health`,
+        reuseExistingServer: !process.env.CI && !productionServer,
+        env: { PLAYWRIGHT_TEST: "1" },
+        timeout: 120_000,
+      },
   projects: [
     { name: "desktop", use: { ...devices["Desktop Chrome"] } },
     { name: "mobile-360", use: { ...devices["iPhone SE"], viewport: { width: 360, height: 800 } } },

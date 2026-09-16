@@ -1,13 +1,18 @@
-import { AuthShell } from "@/components/auth-shell";
+import Link from "next/link";
+import { WayfoundLogo } from "@/components/wayfound-logo";
 import { ConsentForm } from "@/features/auth/consent-form";
-import { requireUser } from "@/server/auth/guards";
+import { isTestFixtureRequest, requireUser } from "@/server/auth/guards";
 import { getPolicyVersion } from "@/server/auth/constants";
 
 export default async function ConsentPage() {
   const { user } = await requireUser();
-  if (!user)
+  const fixture = await isTestFixtureRequest();
+  if (!user && !fixture)
     return (
-      <AuthShell>
+      <main className="consent-page" id="main-content">
+        <Link aria-label="WAYFOUND home" className="consent-brand" href="/">
+          <WayfoundLogo variant="dark" />
+        </Link>
         <div className="auth-card">
           <h2>Sign in to continue</h2>
           <p>Your consent choices are private to your account.</p>
@@ -15,10 +20,13 @@ export default async function ConsentPage() {
             Sign in <span aria-hidden="true">→</span>
           </a>
         </div>
-      </AuthShell>
+      </main>
     );
   return (
-    <AuthShell eyebrow="A clear path starts with clear choices.">
+    <main className="consent-page" id="main-content">
+      <Link aria-label="WAYFOUND home" className="consent-brand" href="/">
+        <WayfoundLogo variant="dark" />
+      </Link>
       <div className="auth-card consent-card">
         <div className="auth-card-heading">
           <p className="card-eyebrow">Your choices · {getPolicyVersion()}</p>
@@ -30,6 +38,6 @@ export default async function ConsentPage() {
         </div>
         <ConsentForm />
       </div>
-    </AuthShell>
+    </main>
   );
 }

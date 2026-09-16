@@ -1,7 +1,11 @@
 import React from "react";
-import type { OpportunityFixture } from "@/features/dashboard/dashboard-fixtures";
-
-export function DestinationArtwork({ artwork, title }: Pick<OpportunityFixture, "artwork" | "title">) {
+export function DestinationArtwork({
+  artwork,
+  title,
+}: {
+  artwork: "china" | "germany" | "canada";
+  title: string;
+}) {
   return (
     <div
       aria-label={`${title} destination illustration`}

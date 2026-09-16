@@ -1,9 +1,15 @@
 import { AccountSettings } from "@/features/auth/account-settings";
+import { RestartWalkthroughButton } from "@/features/dashboard/first-use-walkthrough";
 import { isTestFixtureRequest, requireConsentedUser } from "@/server/auth/guards";
 
 export default async function AccountSettingsPage() {
   if (await isTestFixtureRequest()) {
-    return <AccountSettings email="demo@example.test" exportRequested={false} deletionRequested={false} />;
+    return (
+      <>
+        <AccountSettings email="demo@example.test" exportRequested={false} deletionRequested={false} />
+        <RestartWalkthroughButton />
+      </>
+    );
   }
   const { user, client } = await requireConsentedUser();
   if (!user) return null;
@@ -20,11 +26,14 @@ export default async function AccountSettingsPage() {
       .in("status", ["pending", "processing"]),
   ]);
   return (
-    <AccountSettings
-      email={user.email ?? "your verified email"}
-      exportRequested={(exportRequests?.length ?? 0) > 0}
-      deletionRequested={(deletionRequests?.length ?? 0) > 0}
-      deletionRequestId={deletionRequests?.[0]?.id}
-    />
+    <>
+      <AccountSettings
+        email={user.email ?? "your verified email"}
+        exportRequested={(exportRequests?.length ?? 0) > 0}
+        deletionRequested={(deletionRequests?.length ?? 0) > 0}
+        deletionRequestId={deletionRequests?.[0]?.id}
+      />
+      <RestartWalkthroughButton />
+    </>
   );
 }

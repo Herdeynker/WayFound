@@ -64,9 +64,14 @@ const fixturePlans: BillingPlanView[] = [
   },
 ];
 
-export default async function PricingPage({ searchParams }: { searchParams: Promise<{ state?: string }> }) {
+export default async function PricingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ state?: string; onboarding?: string }>;
+}) {
   const fixture = await isTestFixtureRequest();
-  const requested = (await searchParams).state;
+  const params = await searchParams;
+  const requested = params.state;
   const state =
     fixture && states.has(requested as BillingViewState) ? (requested as BillingViewState) : "ready";
   let plans: BillingPlanView[] = fixture ? fixturePlans : [];
@@ -94,6 +99,12 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
         </p>
         <span className="billing-route-line" aria-hidden="true" />
       </section>
+      {params.onboarding === "complete" ? (
+        <div className="billing-onboarding-complete" role="status">
+          <strong>Your Opportunity Passport is ready.</strong>
+          <span>Choose a plan to activate paid access and continue to your personalized dashboard.</span>
+        </div>
+      ) : null}
       <PricingExperience
         fixture={fixture}
         plans={

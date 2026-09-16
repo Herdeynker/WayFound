@@ -1,75 +1,108 @@
 "use client";
 
 import React, { useState } from "react";
-import { dashboardFixture, type OpportunityFixture } from "@/features/dashboard/dashboard-fixtures";
-import { DestinationArtwork } from "./destination-artwork";
+import Link from "next/link";
+import Image from "next/image";
+import type { Route } from "next";
+import {
+  dashboardFixture,
+  type DashboardFixture,
+  type OpportunityFixture,
+} from "@/features/dashboard/dashboard-fixtures";
 import { Icon, type IconName } from "./icons";
 import { DesktopRouteSignature, MobileProgressRoute, SidebarRouteSignature } from "./route-signatures";
 import { WayfoundLogo } from "./wayfound-logo";
 import { Avatar, Chip, IconButton, SearchInput, Step } from "./ui";
+import { FirstUseWalkthrough } from "@/features/dashboard/first-use-walkthrough";
+import { GettingStartedChecklist } from "@/features/dashboard/getting-started-checklist";
 
 type NavigationItem = { label: string; icon: IconName; href: string };
 
 const desktopNavigation: NavigationItem[] = [
-  { label: "Home", icon: "home", href: "#home" },
-  { label: "Opportunities", icon: "briefcase", href: "#opportunities" },
-  { label: "My Applications", icon: "file", href: "#applications" },
-  { label: "Readiness", icon: "readiness", href: "#readiness" },
-  { label: "Saved", icon: "bookmark", href: "#saved" },
-  { label: "Messages", icon: "message", href: "#messages" },
-  { label: "Profile", icon: "profile", href: "#profile" },
+  { label: "Home", icon: "home", href: "/dashboard" },
+  { label: "Opportunities", icon: "briefcase", href: "/opportunities" },
+  { label: "My Applications", icon: "file", href: "/applications" },
+  { label: "Readiness", icon: "readiness", href: "/onboarding" },
+  { label: "Saved", icon: "bookmark", href: "/opportunities?saved=true" },
+  { label: "Messages", icon: "message", href: "/settings/notifications" },
+  { label: "Profile", icon: "profile", href: "/settings/account" },
 ];
 
 const mobileNavigation: NavigationItem[] = [
-  { label: "Home", icon: "home", href: "#home" },
-  { label: "Explore", icon: "search", href: "#explore" },
-  { label: "Applications", icon: "file", href: "#applications" },
+  { label: "Home", icon: "home", href: "/dashboard" },
+  { label: "Explore", icon: "search", href: "/opportunities" },
+  { label: "Applications", icon: "file", href: "/applications" },
   { label: "Prepare", icon: "readiness", href: "/prepare/ielts" },
-  { label: "Profile", icon: "profile", href: "#profile" },
+  { label: "Profile", icon: "profile", href: "/settings/account" },
 ];
 
-export function DashboardShell() {
-  const [activeNav, setActiveNav] = useState("Home");
-  const [savedIds, setSavedIds] = useState<string[]>([]);
+export function DashboardShell({ model = dashboardFixture }: { model?: DashboardFixture }) {
+  const fixture = model === dashboardFixture;
+  const [savedIds, setSavedIds] = useState<string[]>(
+    model.opportunities.filter((item) => item.saved).map((item) => item.id),
+  );
+  const [saveMessage, setSaveMessage] = useState("");
 
-  const selectNav = (label: string) => setActiveNav(label);
-  const toggleSaved = (id: string) =>
+  const toggleSaved = async (opportunity: OpportunityFixture) => {
+    const wasSaved = savedIds.includes(opportunity.id);
     setSavedIds((current) =>
-      current.includes(id) ? current.filter((savedId) => savedId !== id) : [...current, id],
+      wasSaved ? current.filter((savedId) => savedId !== opportunity.id) : [...current, opportunity.id],
     );
+    if (opportunity.source === "fixture") return;
+    const response = await fetch("/api/opportunities/feedback", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        ...(opportunity.matchId ? { matchId: opportunity.matchId } : { opportunityId: opportunity.id }),
+        eventType: wasSaved ? "match_unsaved" : "match_saved",
+        idempotencyKey: crypto.randomUUID(),
+      }),
+    });
+    if (!response.ok) {
+      setSavedIds((current) =>
+        wasSaved ? [...current, opportunity.id] : current.filter((id) => id !== opportunity.id),
+      );
+      setSaveMessage("That change could not be saved. Please try again.");
+    } else setSaveMessage(wasSaved ? "Removed from saved." : "Saved to your list.");
+  };
 
   return (
     <div className="app-shell" id="home">
-      <DesktopSidebar activeNav={activeNav} onSelect={selectNav} />
+      <DesktopSidebar />
       <div className="app-content">
-        <DesktopTopBar />
-        <MobileHeader />
+        <DesktopTopBar model={model} />
+        <MobileHeader model={model} />
         <main className="dashboard-main" id="main-content">
           <div className="dashboard-container">
-            <GreetingHeader />
-            <MobileReadinessStrip />
+            <GreetingHeader model={model} />
+            <MobileReadinessStrip model={model} />
             <div className="dashboard-route-wrap">
               <DesktopRouteSignature />
             </div>
             <div className="desktop-dashboard-grid">
-              <OpportunityPathCard variant="desktop" />
-              <NextBestActionCard variant="desktop" />
-              <UtilityRail />
+              <OpportunityPathCard model={model} variant="desktop" />
+              <NextBestActionCard model={model} variant="desktop" />
+              <UtilityRail model={model} />
             </div>
             <div className="mobile-dashboard-stack">
-              <OpportunityPathCard variant="mobile" />
-              <NextBestActionCard variant="mobile" />
+              <OpportunityPathCard model={model} variant="mobile" />
+              <NextBestActionCard model={model} variant="mobile" />
             </div>
-            <MatchSection savedIds={savedIds} onToggleSaved={toggleSaved} />
+            <MatchSection model={model} savedIds={savedIds} onToggleSaved={toggleSaved} />
+            <GettingStartedChecklist fixture={fixture} initial={model.checklist} />
+            <p aria-live="polite" className="dashboard-save-message" role="status">
+              {saveMessage}
+            </p>
           </div>
         </main>
-        <MobileBottomNav activeNav={activeNav} onSelect={selectNav} />
+        <MobileBottomNav />
       </div>
+      <FirstUseWalkthrough fixture={fixture} initial={model.walkthrough} />
     </div>
   );
 }
 
-function DesktopSidebar({ activeNav, onSelect }: { activeNav: string; onSelect: (label: string) => void }) {
+function DesktopSidebar() {
   return (
     <aside className="desktop-sidebar" aria-label="Application sidebar">
       <div className="sidebar-brand">
@@ -77,12 +110,7 @@ function DesktopSidebar({ activeNav, onSelect }: { activeNav: string; onSelect: 
       </div>
       <nav aria-label="Primary navigation" className="sidebar-nav">
         {desktopNavigation.map((item) => (
-          <NavigationLink
-            active={activeNav === item.label}
-            item={item}
-            key={item.label}
-            onSelect={onSelect}
-          />
+          <NavigationLink active={item.label === "Home"} item={item} key={item.label} />
         ))}
       </nav>
       <div className="sidebar-signature">
@@ -92,35 +120,26 @@ function DesktopSidebar({ activeNav, onSelect }: { activeNav: string; onSelect: 
   );
 }
 
-function NavigationLink({
-  active,
-  item,
-  onSelect,
-}: {
-  active: boolean;
-  item: NavigationItem;
-  onSelect: (label: string) => void;
-}) {
+function NavigationLink({ active, item }: { active: boolean; item: NavigationItem }) {
   return (
-    <a
+    <Link
       aria-current={active ? "page" : undefined}
       className={`sidebar-link ${active ? "is-active" : ""}`}
-      href={item.href}
-      onClick={(event) => {
-        event.preventDefault();
-        onSelect(item.label);
-      }}
+      href={item.href as Route}
+      id={item.label === "Opportunities" ? "sidebar-opportunities" : undefined}
     >
       <Icon name={item.icon} size={23} />
       <span>{item.label}</span>
-    </a>
+    </Link>
   );
 }
 
-function DesktopTopBar() {
+function DesktopTopBar({ model }: { model: DashboardFixture }) {
   return (
     <header className="desktop-topbar">
-      <SearchInput placeholder="Search opportunities, skills or countries…" />
+      <form action="/opportunities" className="dashboard-search-form">
+        <SearchInput name="q" placeholder="Search opportunities, skills or countries…" />
+      </form>
       <div className="topbar-user">
         <a
           className="icon-button notification-button"
@@ -131,20 +150,41 @@ function DesktopTopBar() {
         </a>
         <span className="notification-dot" aria-label="1 unread notification" role="status" />
         <span className="topbar-divider" aria-hidden="true" />
-        <Avatar label="Amara" size="medium" />
-        <div className="topbar-copy">
-          <strong>Hi, Amara</strong>
-          <span>
-            Keep going <span aria-hidden="true">⚡</span>
-          </span>
-        </div>
-        <IconButton icon="chevron-down" label="Open account menu" />
+        <details className="account-menu">
+          <summary aria-label="Open account menu" id="account-menu-trigger">
+            <Avatar label={model.user.avatarLabel} size="medium" />
+            <span className="topbar-copy">
+              <strong>Hi, {model.user.firstName}</strong>
+              <span>
+                Keep going <span aria-hidden="true">⚡</span>
+              </span>
+            </span>
+            <Icon name="chevron-down" size={20} />
+          </summary>
+          <nav aria-label="Account menu" className="account-menu-panel">
+            <Link href="/settings/account">Profile and account</Link>
+            <Link href="/settings/billing">Billing</Link>
+            <Link href="/settings/notifications">Notifications</Link>
+            <button
+              onClick={async () => {
+                await fetch("/api/auth/logout", {
+                  method: "POST",
+                  headers: { "content-type": "application/json" },
+                });
+                window.location.assign("/login?logged_out=1");
+              }}
+              type="button"
+            >
+              Sign out
+            </button>
+          </nav>
+        </details>
       </div>
     </header>
   );
 }
 
-function MobileHeader() {
+function MobileHeader({ model }: { model: DashboardFixture }) {
   return (
     <header className="mobile-header">
       <WayfoundLogo variant="dark" />
@@ -155,18 +195,20 @@ function MobileHeader() {
           </a>
           <span className="notification-dot" aria-label="1 unread notification" role="status" />
         </div>
-        <Avatar label="Amara" size="medium" />
+        <Link aria-label="Open profile and account" href="/settings/account" id="mobile-account-trigger">
+          <Avatar label={model.user.avatarLabel} size="medium" />
+        </Link>
       </div>
     </header>
   );
 }
 
-function GreetingHeader() {
+function GreetingHeader({ model }: { model: DashboardFixture }) {
   return (
     <section aria-labelledby="dashboard-greeting" className="greeting-header">
       <div>
         <h1 id="dashboard-greeting">
-          Good morning, <span>Amara</span>
+          Good morning, <span>{model.user.firstName}</span>
         </h1>
         <p>A brighter tomorrow. A wider you.</p>
       </div>
@@ -174,37 +216,41 @@ function GreetingHeader() {
   );
 }
 
-function MobileReadinessStrip() {
+function MobileReadinessStrip({ model }: { model: DashboardFixture }) {
   return (
     <section aria-label="Profile readiness" className="mobile-readiness-strip">
       <div
         className="readiness-ring"
-        style={
-          { "--readiness-angle": `${dashboardFixture.readiness.percentage * 3.6}deg` } as React.CSSProperties
-        }
+        style={{ "--readiness-angle": `${model.readiness.percentage * 3.6}deg` } as React.CSSProperties}
       >
-        <strong>{dashboardFixture.readiness.percentage}%</strong>
+        <strong>{model.readiness.percentage}%</strong>
       </div>
-      <strong>Your profile is {dashboardFixture.readiness.percentage}% ready</strong>
+      <strong>Your profile is {model.readiness.percentage}% ready</strong>
       <Icon name="chevron-right" size={27} />
     </section>
   );
 }
 
-function OpportunityPathCard({ variant }: { variant: "desktop" | "mobile" }) {
+function OpportunityPathCard({ model, variant }: { model: DashboardFixture; variant: "desktop" | "mobile" }) {
+  const ready = model.readiness.percentage === 100;
+  const actionHref = ready ? "/opportunities" : "/onboarding";
   if (variant === "mobile") {
     return (
       <section aria-labelledby="mobile-path-title" className="opportunity-path-card opportunity-path-mobile">
         <div className="mobile-path-copy">
           <span className="card-eyebrow">YOUR OPPORTUNITY PATH</span>
-          <h2 id="mobile-path-title">78% ready</h2>
-          <p>Complete a few more steps to unlock even more opportunities.</p>
+          <h2 id="mobile-path-title">{model.readiness.percentage}% ready</h2>
+          <p>
+            {ready
+              ? "Your confirmed profile is ready for personalized opportunities."
+              : "Complete a few more steps to unlock even more opportunities."}
+          </p>
         </div>
         <MobileProgressRoute />
         <div className="mobile-path-footer">
           <span>Bigger opportunities ahead</span>
-          <a className="ui-button ui-button-teal" href="/onboarding">
-            Continue setup <Icon name="arrow-right" size={22} />
+          <a className="ui-button ui-button-teal" href={actionHref}>
+            {ready ? "View matches" : "Continue setup"} <Icon name="arrow-right" size={22} />
           </a>
         </div>
       </section>
@@ -225,51 +271,59 @@ function OpportunityPathCard({ variant }: { variant: "desktop" | "mobile" }) {
         <span className="card-eyebrow">YOUR OPPORTUNITY PATH</span>
         <h2 id="desktop-path-title">Your Opportunity Path</h2>
         <p>
-          Complete a few more steps to unlock
-          <br className="desktop-only" /> even more opportunities.
+          {ready ? (
+            "Your confirmed profile is ready for personalized opportunities."
+          ) : (
+            <>
+              Complete a few more steps to unlock
+              <br className="desktop-only" /> even more opportunities.
+            </>
+          )}
         </p>
         <div className="desktop-step-route">
           <Step complete label="Profile completed" />
           <Step complete label="Skills & experience" />
           <Step complete label="Documents" />
-          <Step current label="Application practice" />
+          <Step complete={ready} current={!ready} label="Application practice" />
         </div>
-        <a className="ui-button ui-button-primary" href="/onboarding">
-          Continue setup <Icon name="arrow-right" size={23} />
+        <a className="ui-button ui-button-primary" href={actionHref}>
+          {ready ? "View matches" : "Continue setup"} <Icon name="arrow-right" size={23} />
         </a>
       </div>
       <strong className="path-readiness">
-        <span>78%</span> ready
+        <span>{model.readiness.percentage}%</span> ready
       </strong>
     </section>
   );
 }
 
-function NextBestActionCard({ variant }: { variant: "desktop" | "mobile" }) {
+function NextBestActionCard({ model, variant }: { model: DashboardFixture; variant: "desktop" | "mobile" }) {
+  const href = model.readiness.percentage < 100 ? "/onboarding" : "/opportunities";
   if (variant === "mobile")
     return (
-      <button className="next-action-mobile" type="button">
+      <Link className="next-action-mobile" href={href}>
         <span className="next-action-icon">
           <ProfileIllustration compact />
         </span>
         <span>
-          <small>{dashboardFixture.nextAction.label}</small>
-          <strong>{dashboardFixture.nextAction.title}</strong>
+          <small>{model.nextAction.label}</small>
+          <strong>{model.nextAction.title}</strong>
         </span>
         <Icon name="chevron-right" size={25} />
-      </button>
+      </Link>
     );
   return (
     <section aria-labelledby="next-action-title" className="next-action-card">
       <div className="next-action-copy">
-        <span className="card-eyebrow">{dashboardFixture.nextAction.label}</span>
-        <h2 id="next-action-title">{dashboardFixture.nextAction.title}</h2>
-        <p>{dashboardFixture.nextAction.description}</p>
+        <span className="card-eyebrow">{model.nextAction.label}</span>
+        <h2 id="next-action-title">{model.nextAction.title}</h2>
+        <p>{model.nextAction.description}</p>
       </div>
       <ProfileIllustration />
-      <a className="ui-button ui-button-primary" href="/onboarding">
-        Continue setup <Icon name="arrow-right" size={22} />
-      </a>
+      <Link className="ui-button ui-button-primary" href={href}>
+        {model.readiness.percentage < 100 ? "Continue setup" : "View matches"}{" "}
+        <Icon name="arrow-right" size={22} />
+      </Link>
     </section>
   );
 }
@@ -289,20 +343,21 @@ function ProfileIllustration({ compact = false }: { compact?: boolean }) {
   );
 }
 
-function UtilityRail() {
+function UtilityRail({ model }: { model: DashboardFixture }) {
   return (
     <aside className="utility-rail" aria-label="Your progress summaries">
       <UtilitySummaryCard
         icon="file"
-        title={dashboardFixture.applications.label === "active" ? "Applications" : "Applications"}
-        value={`${dashboardFixture.applications.count} active`}
-        description={dashboardFixture.applications.description}
+        title="Applications"
+        value={`${model.applications.count} active`}
+        description={model.applications.description}
+        href="/applications"
       />
       <UtilitySummaryCard
         icon="readiness"
-        title={dashboardFixture.ielts.label}
-        value={dashboardFixture.ielts.score}
-        description={dashboardFixture.ielts.description}
+        title={model.ielts.label}
+        value={model.ielts.score}
+        description={model.ielts.description}
         bars
         href="/prepare/ielts"
       />
@@ -356,29 +411,38 @@ function UtilitySummaryCard({
 }
 
 function MatchSection({
+  model,
   savedIds,
   onToggleSaved,
 }: {
+  model: DashboardFixture;
   savedIds: string[];
-  onToggleSaved: (id: string) => void;
+  onToggleSaved: (opportunity: OpportunityFixture) => void;
 }) {
   return (
     <section aria-labelledby="matches-title" className="matches-section" id="opportunities">
       <div className="section-heading">
-        <h2 id="matches-title">Top Matches For You</h2>
-        <a href="#all-opportunities">
+        <h2 id="matches-title">{model.discoveryHeading ?? "Top Matches For You"}</h2>
+        <Link href="/opportunities">
           View all <Icon name="arrow-right" size={23} />
-        </a>
+        </Link>
       </div>
       <div className="matches-track">
-        {dashboardFixture.opportunities.map((opportunity) => (
+        {model.opportunities.map((opportunity) => (
           <OpportunityCard
             isSaved={savedIds.includes(opportunity.id)}
             key={opportunity.id}
-            onToggleSaved={() => onToggleSaved(opportunity.id)}
+            onToggleSaved={() => onToggleSaved(opportunity)}
             opportunity={opportunity}
           />
         ))}
+        {!model.opportunities.length ? (
+          <div className="dashboard-empty-matches">
+            <strong>Your first matches are being prepared.</strong>
+            <span>We’ll show verified opportunities here as soon as your profile has been evaluated.</span>
+            <Link href="/opportunities">Check opportunities</Link>
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -396,7 +460,20 @@ function OpportunityCard({
   return (
     <article className="opportunity-card">
       <div className="opportunity-image-wrap">
-        <DestinationArtwork artwork={opportunity.artwork} title={opportunity.title} />
+        {opportunity.imageSrc ? (
+          <Image
+            alt={opportunity.imageAlt}
+            className="destination-photo"
+            height={360}
+            src={opportunity.imageSrc}
+            width={640}
+          />
+        ) : (
+          <div aria-label={opportunity.imageAlt} className="destination-photo-placeholder" role="img">
+            <Icon name="map-pin" size={24} />
+            <span>{opportunity.country}</span>
+          </div>
+        )}
         <Chip tone={opportunity.category === "Job" ? "teal" : "blue"}>{opportunity.category}</Chip>
         <IconButton
           className={`bookmark-button ${isSaved ? "is-saved" : ""}`}
@@ -412,8 +489,14 @@ function OpportunityCard({
           {opportunity.country}
         </p>
         <div className="match-score">
-          <strong>{opportunity.match}%</strong>
-          <span>Match</span>
+          {opportunity.match === null ? (
+            <strong className="match-score-unknown">Complete Passport to calculate your match</strong>
+          ) : (
+            <>
+              <strong>{opportunity.match}%</strong>
+              <span>Match</span>
+            </>
+          )}
         </div>
         <p className="opportunity-deadline">
           <Icon name="calendar" size={17} />
@@ -422,31 +505,31 @@ function OpportunityCard({
             {opportunity.deadline}
           </span>
         </p>
-        <IconButton className="opportunity-arrow" icon="chevron-right" label={`View ${opportunity.title}`} />
+        <Link
+          aria-label={`View ${opportunity.title}`}
+          className="icon-button opportunity-arrow"
+          href={`/opportunities/${opportunity.id}` as Route}
+        >
+          <Icon name="chevron-right" size={20} />
+        </Link>
       </div>
     </article>
   );
 }
 
-function MobileBottomNav({ activeNav, onSelect }: { activeNav: string; onSelect: (label: string) => void }) {
+function MobileBottomNav() {
   return (
-    <nav aria-label="Mobile navigation" className="mobile-bottom-nav">
+    <nav aria-label="Mobile navigation" className="mobile-bottom-nav" id="mobile-bottom-nav">
       {mobileNavigation.map((item) => (
-        <a
-          aria-current={activeNav === item.label ? "page" : undefined}
-          className={activeNav === item.label ? "is-active" : ""}
-          href={item.href}
+        <Link
+          aria-current={item.label === "Home" ? "page" : undefined}
+          className={item.label === "Home" ? "is-active" : ""}
+          href={item.href as Route}
           key={item.label}
-          onClick={(event) => {
-            if (item.href.startsWith("#")) {
-              event.preventDefault();
-              onSelect(item.label);
-            }
-          }}
         >
           <Icon name={item.icon} size={27} />
           <span>{item.label}</span>
-        </a>
+        </Link>
       ))}
     </nav>
   );

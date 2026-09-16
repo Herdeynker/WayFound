@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       ok: true,
       redirectTo:
         data.session && (await hasCurrentRequiredConsent(client, data.user.id))
-          ? "/dashboard"
+          ? "/"
           : "/auth/verify?mode=register",
     },
     { headers: response.headers },

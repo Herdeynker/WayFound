@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/server/supabase/server";
 import { getCurrentUser, hasCurrentRequiredConsent } from "@/server/auth/service";
 import { isTestFixtureRequest } from "@/server/auth/guards";
+import { hasCompletedPassport } from "@/server/passport/service";
+import { hasPaidEntitlement } from "@/server/billing/service";
 
 export default async function HomePage() {
   if (await isTestFixtureRequest()) redirect("/dashboard");
@@ -9,10 +11,7 @@ export default async function HomePage() {
   const user = await getCurrentUser(client);
   if (!user) redirect("/login");
   if (!(await hasCurrentRequiredConsent(client, user.id))) redirect("/consent");
-  const { data: progress } = await client
-    .from("onboarding_progress")
-    .select("completion")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  redirect(progress && progress.completion > 0 ? "/dashboard" : "/onboarding");
+  if (!(await hasCompletedPassport(client, user.id))) redirect("/onboarding");
+  if (!(await hasPaidEntitlement(user.id))) redirect("/pricing?onboarding=complete");
+  redirect("/dashboard");
 }

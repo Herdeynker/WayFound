@@ -1,25 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse, type NextRequest } from "next/server";
+import { validateDocumentUpload } from "@/server/applications/model";
 import { getCurrentUser, hasCurrentConsent } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
 import { consumeRateLimit } from "@/server/security/rate-limit";
 import { getRequestIdentifier } from "@/server/security/request";
 import { quarantineScanAndPromote } from "@/server/security/upload-scan";
-
-const maxBytes = 10 * 1024 * 1024;
-const allowed = new Map([
-  ["application/pdf", ".pdf"],
-  ["application/vnd.openxmlformats-officedocument.wordprocessingml.document", ".docx"],
-  ["image/jpeg", ".jpg"],
-  ["image/png", ".png"],
-]);
-
-function hasSignature(bytes: Uint8Array, mime: string) {
-  if (mime === "application/pdf") return new TextDecoder().decode(bytes.slice(0, 4)) === "%PDF";
-  if (mime === "image/jpeg") return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  if (mime === "image/png") return bytes.slice(0, 4).join(",") === "137,80,78,71";
-  return bytes[0] === 0x50 && bytes[1] === 0x4b;
-}
 
 export async function POST(request: NextRequest) {
   const response = NextResponse.json({ ok: true });
@@ -39,16 +25,17 @@ export async function POST(request: NextRequest) {
   const documentType = String(form.get("documentType") ?? "cv_resume");
   if (!(file instanceof File))
     return NextResponse.json({ error: "Choose a document to upload." }, { status: 400 });
-  const extension = allowed.get(file.type);
-  if (!extension || file.size <= 0 || file.size > maxBytes)
-    return NextResponse.json({ error: "Use a PDF, DOCX, JPG or PNG under 10 MB." }, { status: 400 });
   const bytes = new Uint8Array(await file.arrayBuffer());
-  if (!hasSignature(bytes, file.type))
+  let validated;
+  try {
+    validated = validateDocumentUpload(file, bytes);
+  } catch (error) {
     return NextResponse.json(
-      { error: "The file signature does not match its declared type." },
+      { error: error instanceof Error ? error.message : "This file is not supported." },
       { status: 400 },
     );
-  const path = `${user.id}/${randomUUID()}${extension}`;
+  }
+  const path = `${user.id}/${randomUUID()}${validated.extension}`;
   const upload = await quarantineScanAndPromote({
     userId: user.id,
     purpose: "passport_document",

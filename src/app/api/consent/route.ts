@@ -11,7 +11,7 @@ export async function POST(request: NextRequest) {
       { error: "The three required choices must be selected to continue." },
       { status: 400 },
     );
-  const response = NextResponse.json({ ok: true, redirectTo: "/dashboard" });
+  const response = NextResponse.json({ ok: true, redirectTo: "/onboarding" });
   const client = createSupabaseRouteClient(request, response);
   const user = await getCurrentUser(client);
   if (!user) return NextResponse.json({ error: "Please sign in again." }, { status: 401 });

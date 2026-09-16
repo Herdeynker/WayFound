@@ -36,7 +36,7 @@ export function ConsentForm() {
     });
     const data = await response.json().catch(() => ({}));
     if (!response.ok) setError(data.error ?? "Please review your required choices.");
-    else window.location.assign(data.redirectTo ?? "/dashboard");
+    else window.location.assign(data.redirectTo ?? "/onboarding");
     setPending(false);
   }
   return (
