@@ -46,7 +46,11 @@ export async function getDashboardModel(
     checklist,
   ] = await Promise.all([
     client.from("profiles").select("first_name,display_name").eq("id", user.id).maybeSingle(),
-    client.from("onboarding_progress").select("completion").eq("user_id", user.id).maybeSingle(),
+    client
+      .from("onboarding_progress")
+      .select("completion,passport_readiness")
+      .eq("user_id", user.id)
+      .maybeSingle(),
     client.from("applications").select("id", { count: "exact", head: true }).eq("user_id", user.id),
     getOpportunityFeed(client, user.id, { sort: "best", tab: "for_you", page: 1 }).catch(() => null),
     client.from("user_goals").select("id", { count: "exact", head: true }).eq("user_id", user.id),
@@ -77,7 +81,7 @@ export async function getDashboardModel(
       saved: item.saved,
     };
   });
-  const readiness = progress.data?.completion ?? 0;
+  const readiness = progress.data?.passport_readiness ?? progress.data?.completion ?? 0;
   const hasGoals = (goals.count ?? 0) > 0;
   const hasVersion = (version.count ?? 0) > 0;
   const hasMatch = Boolean(feed?.items.some((item) => item.basis === "personalized"));
@@ -120,11 +124,16 @@ export async function getDashboardModel(
       collapsed: Boolean(checklist?.collapsed_at),
       items: [
         { id: "account", label: "Create your account", href: "/settings/account", complete: true },
-        { id: "goals", label: "Choose relocation goals", href: "/onboarding", complete: hasGoals },
+        {
+          id: "goals",
+          label: "Choose relocation goals",
+          href: "/onboarding?edit=1",
+          complete: hasGoals,
+        },
         {
           id: "passport",
           label: "Confirm your Passport",
-          href: "/onboarding",
+          href: "/onboarding?edit=1",
           complete: hasVersion && readiness === 100,
         },
         { id: "match", label: "Review your first match", href: "/opportunities", complete: hasMatch },

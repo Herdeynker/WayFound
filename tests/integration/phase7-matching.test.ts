@@ -176,6 +176,8 @@ describe("Phase 7 match persistence and RLS", () => {
         ).error,
       ).toBeNull();
     },
-    30_000,
+    // The hosted regression performs two account creations plus 15 sequential RLS
+    // round trips. Keep every assertion while allowing normal shared-project latency.
+    60_000,
   );
 });

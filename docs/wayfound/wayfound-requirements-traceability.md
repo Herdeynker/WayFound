@@ -2,6 +2,10 @@
 
 This matrix prevents scope loss. IDs are stable; implementation may add subrequirements but must not silently remove these.
 
+## Corrective onboarding optimization
+
+The Phase 3 Opportunity Passport activation surface is superseded by the backward-compatible four-stage flow documented in `onboarding-optimization.md`. The normalized Passport tables, owner RLS, immutable profile versions, CV-confirmation boundary, Phase 7 matching semantics, Phase 12 billing gate and Phase 16 real-opportunity hierarchy remain authoritative. Detailed verification evidence is tracked in `onboarding-optimization-requirements-checklist.md`.
+
 | ID         | Requirement                                                       | Phase | Required evidence                          |
 | ---------- | ----------------------------------------------------------------- | ----: | ------------------------------------------ |
 | WF-FND-01  | Strict app foundation, CI, env validation and safe health check   |     0 | Clean CI/build and health tests            |

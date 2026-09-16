@@ -70,6 +70,9 @@ describe("Phase 2 RLS isolation", () => {
       const untouched = await admin!.from("profiles").select("display_name").eq("id", userBId).single();
       expect(untouched.data?.display_name).not.toBe("should-not-change");
     },
-    30_000,
+    // The shared hosted development project can queue auth administration calls
+    // behind the wider integration suite; preserve every assertion while allowing
+    // that bounded provider latency.
+    60_000,
   );
 });

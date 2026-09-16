@@ -33,6 +33,22 @@ describe("Phase 14 launch security", () => {
     expect(
       sanitizeAnalyticsProperties({ channel: "email", email: "private@example.test", cv: "raw", extra: 1 }),
     ).toEqual({ channel: "email" });
+    const completion = analyticsIdempotencyKey("onboarding_stage_completed", "user:goals:revision-2");
+    expect(analyticsIdempotencyKey("onboarding_stage_completed", "user:goals:revision-2")).toBe(completion);
+    expect(
+      sanitizeAnalyticsProperties({
+        stage: "experience",
+        flow_version: "onboarding.optimized.v1",
+        detail: "passport_enrichment",
+        preferredName: "Private person",
+        documentName: "private-cv.pdf",
+        rawValue: "secret answer",
+      }),
+    ).toEqual({
+      stage: "experience",
+      flow_version: "onboarding.optimized.v1",
+      detail: "passport_enrichment",
+    });
   });
 
   it("redacts credentials and contact data even inside error text", () => {

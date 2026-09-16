@@ -5,7 +5,14 @@ import { createSupabaseAdminClient } from "@/server/supabase/admin";
 
 export const productEventTypes = [
   "registration",
+  "onboarding_started",
+  "onboarding_stage_viewed",
+  "onboarding_stage_completed",
+  "onboarding_stage_abandoned",
+  "onboarding_resumed",
   "onboarding_completed",
+  "optional_field_deferred",
+  "review_edit_requested",
   "first_useful_match",
   "opportunity_saved",
   "application_workspace_created",
@@ -19,7 +26,17 @@ export const productEventTypes = [
 
 export type ProductEventType = (typeof productEventTypes)[number];
 
-const allowedProperties = new Set(["channel", "pathway", "plan", "status", "source", "surface"]);
+const allowedProperties = new Set([
+  "channel",
+  "pathway",
+  "plan",
+  "status",
+  "source",
+  "surface",
+  "stage",
+  "flow_version",
+  "detail",
+]);
 
 export function analyticsIdempotencyKey(eventType: ProductEventType, stableValue: string): string {
   const hex = createHash("sha256").update(`${eventType}:${stableValue}`).digest("hex").slice(0, 32);

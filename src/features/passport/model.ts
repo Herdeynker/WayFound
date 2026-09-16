@@ -11,6 +11,37 @@ export const goalTypes = [
 
 export type GoalType = (typeof goalTypes)[number];
 
+export const onboardingFlowVersion = "onboarding.optimized.v1";
+export const onboardingStageIds = ["goals", "background", "experience", "review"] as const;
+export type OnboardingStageId = (typeof onboardingStageIds)[number];
+
+export const onboardingStages: ReadonlyArray<{
+  id: OnboardingStageId;
+  label: string;
+  description: string;
+}> = [
+  {
+    id: "goals",
+    label: "Goals",
+    description: "Choose the opportunities and destinations that should shape your first results.",
+  },
+  {
+    id: "background",
+    label: "Background",
+    description: "Add only the essentials needed to understand where you are starting from.",
+  },
+  {
+    id: "experience",
+    label: "Experience",
+    description: "Answer the compact questions that matter for your selected pathways.",
+  },
+  {
+    id: "review",
+    label: "Review",
+    description: "Confirm what WAYFOUND may use for initial matching and defer the rest.",
+  },
+];
+
 export const goalCatalog: Array<{ id: GoalType; title: string; description: string; eyebrow: string }> = [
   {
     id: "study_funding",
@@ -77,13 +108,33 @@ export const sectionIds = [
 ] as const;
 export type SectionId = (typeof sectionIds)[number];
 
+export function mapLegacySectionToStage(value: unknown): OnboardingStageId {
+  if (typeof value !== "string") return "goals";
+  if (onboardingStageIds.includes(value as OnboardingStageId)) return value as OnboardingStageId;
+  if (value === "destinations" || value === "goals") return "goals";
+  if (value === "origin") return "background";
+  if (
+    ["academic", "professional", "skills", "certifications", "trade", "language", "documents"].includes(value)
+  )
+    return "experience";
+  if (value === "review") return "review";
+  return "goals";
+}
+
+export function pathwayFlags(goals: readonly GoalType[]) {
+  return {
+    academic: goals.some((goal) =>
+      ["study_funding", "fellowship_graduate", "research", "internship"].includes(goal),
+    ),
+    research: goals.some((goal) => ["fellowship_graduate", "research"].includes(goal)),
+    professional: goals.some((goal) => ["professional_sponsorship", "internship"].includes(goal)),
+    trade: goals.includes("skilled_trade"),
+  };
+}
+
 export function visibleSections(goals: readonly GoalType[]): SectionId[] {
   const sections: SectionId[] = ["goals", "origin", "destinations"];
-  const academic = goals.some((goal) =>
-    ["study_funding", "fellowship_graduate", "research", "internship"].includes(goal),
-  );
-  const professional = goals.some((goal) => ["professional_sponsorship", "internship"].includes(goal));
-  const trade = goals.includes("skilled_trade");
+  const { academic, professional, trade } = pathwayFlags(goals);
   if (academic) sections.push("academic");
   if (professional) sections.push("professional");
   if (professional || trade) sections.push("skills");
@@ -285,4 +336,26 @@ export const documentTypes = [
 
 export function normalizeSkillName(value: string): string {
   return value.trim().toLocaleLowerCase().replace(/\s+/g, " ");
+}
+
+/** Stable matching input: database record identifiers are not material Passport facts. */
+export function materialPassportSnapshot(state: PassportState): PassportState {
+  const withoutId = <T extends { id?: string }>(record: T): Omit<T, "id"> => {
+    const material = { ...record };
+    delete material.id;
+    return material;
+  };
+  return {
+    ...state,
+    education: state.education.map(withoutId),
+    employment: state.employment.map(withoutId),
+    skills: state.skills.map(withoutId),
+    certifications: state.certifications.map(withoutId),
+    trade: state.trade.map(withoutId),
+    languages: state.languages.map(withoutId),
+  };
+}
+
+export function materialPassportFingerprint(state: PassportState): string {
+  return JSON.stringify(materialPassportSnapshot(state));
 }

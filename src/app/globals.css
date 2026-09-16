@@ -538,6 +538,273 @@
   }
 }
 
+/* Corrective four-stage onboarding optimization */
+.passport-stage-summary {
+  display: grid;
+  gap: 8px;
+  border-radius: 16px;
+  background: var(--color-navy-900);
+  color: #c9dbe6;
+  padding: 16px;
+}
+.passport-stage-summary strong {
+  color: #fff;
+  font-family: var(--font-sora);
+  font-size: 19px;
+}
+.passport-stage-summary .progress-indicator {
+  background: rgb(255 255 255 / 18%);
+}
+.passport-progress > .passport-score {
+  margin-top: 16px;
+}
+.passport-score small {
+  color: #5f788b;
+  line-height: 1.45;
+}
+.passport-progress nav button b {
+  color: #78909f;
+  font-size: 10px;
+  font-weight: 700;
+}
+.passport-progress nav button.is-complete {
+  color: var(--color-navy-800);
+  font-weight: 750;
+}
+.passport-progress nav button.is-complete > span {
+  border-color: var(--color-teal-500);
+  color: var(--color-teal-600);
+}
+.passport-save-status {
+  display: grid;
+  gap: 7px;
+}
+.passport-save-status.is-error {
+  color: #9b2c2c;
+}
+.passport-save-status button,
+.passport-defer,
+.passport-review-group button {
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--color-teal-600);
+  padding: 0;
+  font-weight: 800;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.passport-question-card,
+.passport-experience-card,
+.passport-later-card,
+.passport-review-group {
+  border: 1px solid #dce9ed;
+  border-radius: 17px;
+  background: #fff;
+  padding: 20px;
+}
+.passport-card-heading {
+  margin-bottom: 18px;
+}
+.passport-card-heading span,
+.passport-experience-card summary span {
+  display: block;
+  color: var(--color-teal-600);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.passport-card-heading h3,
+.passport-review-group h3 {
+  margin: 5px 0 0;
+  color: var(--color-navy-800);
+  font-family: var(--font-sora);
+  font-size: 20px;
+}
+.passport-experience-card summary {
+  display: grid;
+  min-height: 48px;
+  align-content: center;
+  cursor: pointer;
+  list-style-position: outside;
+}
+.passport-experience-card summary strong {
+  margin-top: 5px;
+  color: var(--color-navy-800);
+  font-family: var(--font-sora);
+  font-size: 20px;
+}
+.passport-experience-card[open] summary {
+  margin-bottom: 18px;
+  border-bottom: 1px solid #edf2f4;
+  padding-bottom: 14px;
+}
+.passport-experience-card .passport-defer {
+  margin-top: 12px;
+}
+.passport-later-card {
+  background: #effafa;
+}
+.passport-later-card strong {
+  color: var(--color-navy-800);
+  font-family: var(--font-sora);
+  font-size: 17px;
+}
+.passport-later-card p {
+  margin: 8px 0 2px;
+  color: #5e7588;
+  line-height: 1.55;
+}
+.passport-chip-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+}
+.passport-chip-list > span {
+  display: inline-flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 7px;
+  border-radius: 999px;
+  background: var(--color-teal-100);
+  color: var(--color-navy-800);
+  padding: 4px 8px 4px 13px;
+  font-weight: 700;
+}
+.passport-chip-list button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  color: #8f3f3f;
+  font-size: 20px;
+}
+.passport-activation-status {
+  border-radius: 18px;
+  background: var(--color-navy-900);
+  color: #d7e5ed;
+  padding: 22px;
+}
+.passport-activation-status > span {
+  display: block;
+  color: #6fe0dc;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.passport-activation-status strong {
+  display: block;
+  margin-top: 8px;
+  color: #fff;
+  font-family: var(--font-sora);
+  font-size: 25px;
+}
+.passport-activation-status p,
+.passport-review-group p,
+.passport-confirm-note {
+  margin: 8px 0 0;
+  color: #667c8e;
+  line-height: 1.5;
+}
+.passport-activation-status p {
+  color: #c7d7e0;
+}
+.passport-review-group > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+.passport-review-group.is-deferred {
+  background: #fffaf0;
+}
+.passport-review-group.is-deferred > div > span {
+  color: #8b672a;
+  font-size: 12px;
+  font-weight: 700;
+}
+.passport-review-group ul {
+  margin: 14px 0 0;
+  color: #667c8e;
+  padding-left: 20px;
+}
+.passport-confirm-note {
+  border-left: 4px solid var(--color-teal-500);
+  padding: 8px 0 8px 15px;
+}
+.passport-section-stack fieldset > .choice-control:last-of-type {
+  margin-top: 12px;
+}
+
+@media (max-width: 767px) {
+  .passport-stage-summary {
+    padding: 13px;
+  }
+  .passport-progress nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    overflow: visible;
+    margin: 10px 0 0;
+  }
+  .passport-progress nav button {
+    display: grid;
+    min-width: 0;
+    min-height: 62px;
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding: 4px 2px;
+    font-size: 10px;
+    text-align: center;
+  }
+  .passport-progress nav button b {
+    display: none;
+  }
+  .passport-progress > .passport-score {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    margin-top: 10px;
+  }
+  .passport-progress > .passport-score .progress-indicator,
+  .passport-progress > .passport-score small {
+    grid-column: 1 / -1;
+  }
+  .passport-save-status {
+    margin-top: 9px;
+  }
+  .passport-content {
+    padding: 20px 16px;
+  }
+  .passport-question-card,
+  .passport-experience-card,
+  .passport-later-card,
+  .passport-review-group {
+    padding: 16px;
+  }
+  .passport-goal {
+    min-height: 96px;
+  }
+  .passport-country-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+  .passport-country-grid .choice-control {
+    min-height: 48px;
+  }
+  .passport-actions {
+    position: static;
+    margin-top: 24px;
+    background: #fff;
+    box-shadow: none;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+  }
+}
+
 /* Phase 16 discovery, tour and checklist additions. */
 .explore-card-image {
   display: block;
@@ -5727,6 +5994,75 @@ button:disabled {
   }
   .consent-card {
     padding: 22px 17px;
+  }
+}
+
+/* Applied after the legacy Phase 3 cascade. */
+.passport-progress > .passport-stage-summary {
+  display: grid;
+  gap: 8px;
+  border-radius: 16px;
+  background: var(--color-navy-900);
+  color: #c9dbe6;
+  padding: 16px;
+}
+.passport-progress > .passport-stage-summary strong {
+  color: #fff;
+  font-family: var(--font-sora);
+  font-size: 19px;
+}
+.passport-progress > .passport-score {
+  display: grid;
+  margin-top: 16px;
+}
+.passport-progress nav button {
+  grid-template-columns: 29px minmax(0, 1fr) 52px;
+}
+.passport-progress nav button b {
+  display: block;
+  color: #78909f;
+  font-size: 10px;
+  text-align: right;
+}
+.passport-save-status {
+  display: grid;
+  gap: 7px;
+}
+@media (max-width: 767px) {
+  .passport-progress nav {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 3px;
+    overflow: visible;
+    margin: 10px 0 0;
+  }
+  .passport-progress nav button {
+    display: grid;
+    min-width: 0;
+    min-height: 64px;
+    grid-template-columns: 1fr;
+    gap: 3px;
+    padding: 4px 2px;
+    font-size: 10px;
+    text-align: center;
+  }
+  .passport-progress nav button b {
+    display: none;
+  }
+  .passport-progress > .passport-score {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    margin-top: 10px;
+  }
+  .passport-progress > .passport-score .progress-indicator,
+  .passport-progress > .passport-score small {
+    grid-column: 1 / -1;
+  }
+  .passport-actions {
+    position: static;
+    background: #fff;
+    box-shadow: none;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
   }
 }
 

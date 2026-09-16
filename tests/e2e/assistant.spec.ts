@@ -39,7 +39,9 @@ test.describe("Phase 10 CV and application assistant", () => {
     await expect(page.getByRole("heading", { name: "Writing provider not configured" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Create grounded draft" })).toBeDisabled();
     await page.goto("/prepare/assistant?state=permission");
-    await expect(page.getByRole("alert")).toContainText("No private facts were shown");
+    await expect(page.locator(".assistant-state-permission[role='alert']")).toContainText(
+      "No private facts were shown",
+    );
   });
 
   test("keeps the assistant keyboard-reachable and explicitly labelled", async ({ page }, testInfo) => {

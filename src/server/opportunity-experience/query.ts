@@ -233,6 +233,7 @@ export async function getOpportunityFeed(
       "id, opportunity_id, candidate_rank, match_score, eligibility_outcome, readiness_state, publication_decision, evaluated_at",
     )
     .eq("user_id", userId)
+    .eq("profile_version_id", profile.data?.id ?? "00000000-0000-0000-0000-000000000000")
     .in(
       "eligibility_outcome",
       input.outcome

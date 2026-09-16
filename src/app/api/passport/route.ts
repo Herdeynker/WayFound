@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { passportStateSchema } from "@/features/passport/model";
-import { getCurrentUser } from "@/server/auth/service";
+import { onboardingFlowVersion } from "@/features/passport/model";
+import { getCurrentUser, hasCurrentRequiredConsent } from "@/server/auth/service";
 import { createSupabaseRouteClient } from "@/server/supabase/route";
 import { confirmPassport, getPassportDraft, savePassportDraft } from "@/server/passport/service";
 import { analyticsIdempotencyKey, recordProductEvent } from "@/server/analytics";
@@ -12,6 +13,8 @@ export async function GET(request: NextRequest) {
   const user = await getCurrentUser(client);
   if (!user)
     return NextResponse.json({ error: "Your session has expired. Please sign in again." }, { status: 401 });
+  if (!(await hasCurrentRequiredConsent(client, user.id)))
+    return NextResponse.json({ error: "Required privacy choices must be confirmed first." }, { status: 403 });
   try {
     return NextResponse.json(await getPassportDraft(client, user.id));
   } catch (error) {
@@ -36,6 +39,8 @@ export async function PUT(request: NextRequest) {
   const user = await getCurrentUser(client);
   if (!user)
     return NextResponse.json({ error: "Your session has expired. Please sign in again." }, { status: 401 });
+  if (!(await hasCurrentRequiredConsent(client, user.id)))
+    return NextResponse.json({ error: "Required privacy choices must be confirmed first." }, { status: 403 });
   if (!(await consumeRateLimit("passport.save", user.id, 40, 60_000)).allowed)
     return NextResponse.json(
       { error: "Too many Passport updates. Wait a minute and retry." },
@@ -48,7 +53,10 @@ export async function PUT(request: NextRequest) {
         userId: user.id,
         eventType: "onboarding_completed",
         idempotencyKey: analyticsIdempotencyKey("onboarding_completed", user.id),
-        properties: { pathway: parsed.data.selectedGoals.join("+").slice(0, 80) },
+        properties: {
+          pathway: parsed.data.selectedGoals.join("+").slice(0, 80),
+          flow_version: onboardingFlowVersion,
+        },
       });
       return NextResponse.json({ ok: true, completion });
     }

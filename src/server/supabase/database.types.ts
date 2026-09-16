@@ -4456,27 +4456,39 @@ export type Database = {
       }
       onboarding_progress: {
         Row: {
+          completed_at: string | null
           completion: number
           current_section: string
           draft: Json
+          flow_version: string
+          onboarding_started_at: string | null
+          passport_readiness: number
           revision: number
           selected_goal_types: string[]
           updated_at: string
           user_id: string
         }
         Insert: {
+          completed_at?: string | null
           completion?: number
           current_section?: string
           draft?: Json
+          flow_version?: string
+          onboarding_started_at?: string | null
+          passport_readiness?: number
           revision?: number
           selected_goal_types?: string[]
           updated_at?: string
           user_id: string
         }
         Update: {
+          completed_at?: string | null
           completion?: number
           current_section?: string
           draft?: Json
+          flow_version?: string
+          onboarding_started_at?: string | null
+          passport_readiness?: number
           revision?: number
           selected_goal_types?: string[]
           updated_at?: string
@@ -6211,6 +6223,47 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_match_recompute_queue: {
+        Row: {
+          attempt_count: number
+          available_at: string
+          created_at: string
+          profile_version_id: string
+          reason: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          attempt_count?: number
+          available_at?: string
+          created_at?: string
+          profile_version_id: string
+          reason?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          attempt_count?: number
+          available_at?: string
+          created_at?: string
+          profile_version_id?: string
+          reason?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profile_match_recompute_queue_profile_version_id_fkey"
+            columns: ["profile_version_id"]
+            isOneToOne: true
+            referencedRelation: "profile_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profile_suggestions: {
         Row: {
           confirmed_at: string | null
@@ -6264,6 +6317,7 @@ export type Database = {
           id: string
           schema_version: string
           snapshot: Json
+          snapshot_fingerprint: string | null
           trigger: string
           user_id: string
           version_number: number
@@ -6273,6 +6327,7 @@ export type Database = {
           id?: string
           schema_version?: string
           snapshot: Json
+          snapshot_fingerprint?: string | null
           trigger: string
           user_id: string
           version_number: number
@@ -6282,6 +6337,7 @@ export type Database = {
           id?: string
           schema_version?: string
           snapshot?: Json
+          snapshot_fingerprint?: string | null
           trigger?: string
           user_id?: string
           version_number?: number
@@ -7115,6 +7171,10 @@ export type Database = {
         Args: { request_id: string }
         Returns: boolean
       }
+      onboarding_parse_partial_date: {
+        Args: { candidate: string }
+        Returns: string
+      }
       phase10_application_owned: {
         Args: { candidate_application_id: string; candidate_user_id: string }
         Returns: boolean
@@ -7442,6 +7502,14 @@ export type Database = {
         }[]
       }
       phase15_url_host: { Args: { candidate_url: string }; Returns: string }
+      phase16_confirm_onboarding: {
+        Args: {
+          candidate_passport_readiness: number
+          candidate_snapshot: Json
+          candidate_trigger?: string
+        }
+        Returns: Json
+      }
       phase4_valid_condition: { Args: { value: Json }; Returns: boolean }
       phase4_valid_normalized_value: { Args: { value: Json }; Returns: boolean }
       phase5_acquire_source_lease: {
