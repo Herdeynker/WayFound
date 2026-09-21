@@ -48,7 +48,7 @@ export async function getDashboardModel(
     client.from("profiles").select("first_name,display_name").eq("id", user.id).maybeSingle(),
     client
       .from("onboarding_progress")
-      .select("completion,passport_readiness")
+      .select("completion,passport_readiness,draft")
       .eq("user_id", user.id)
       .maybeSingle(),
     client.from("applications").select("id", { count: "exact", head: true }).eq("user_id", user.id),
@@ -82,6 +82,11 @@ export async function getDashboardModel(
     };
   });
   const readiness = progress.data?.passport_readiness ?? progress.data?.completion ?? 0;
+  const focusPath =
+    progress.data?.draft && typeof progress.data.draft === "object" && !Array.isArray(progress.data.draft)
+      ? (progress.data.draft as Record<string, unknown>).focusPath
+      : null;
+  const exploring = focusPath === "exploring";
   const hasGoals = (goals.count ?? 0) > 0;
   const hasVersion = (version.count ?? 0) > 0;
   const hasMatch = Boolean(feed?.items.some((item) => item.basis === "personalized"));
@@ -91,8 +96,14 @@ export async function getDashboardModel(
       avatarLabel: nameFromAccount(user, profile.data),
     },
     readiness: { percentage: readiness, label: "ready" },
-    nextAction:
-      readiness < 100
+    nextAction: exploring
+      ? {
+          label: "Your next step",
+          title: "Choose a path to unlock tailored matches",
+          description:
+            "Explore broader verified opportunities now, then personalise one route when you are ready.",
+        }
+      : readiness < 100
         ? {
             label: "Next Best Action",
             title: "Complete your profile",
@@ -134,7 +145,7 @@ export async function getDashboardModel(
           id: "passport",
           label: "Confirm your Passport",
           href: "/onboarding?edit=1",
-          complete: hasVersion && readiness === 100,
+          complete: hasVersion && progress.data?.completion === 100,
         },
         { id: "match", label: "Review your first match", href: "/opportunities", complete: hasMatch },
         {

@@ -60,6 +60,14 @@ function studyState(): PassportState {
   };
 }
 
+function multiGoalExploringState(): PassportState {
+  return {
+    ...studyState(),
+    selectedGoals: ["study_funding", "professional_sponsorship", "skilled_trade"],
+    focusPath: "exploring",
+  };
+}
+
 describe("optimized onboarding hosted transaction and RLS", () => {
   afterAll(async () => {
     for (const userId of createdUsers) await admin?.auth.admin.deleteUser(userId);
@@ -104,7 +112,7 @@ describe("optimized onboarding hosted transaction and RLS", () => {
             user_id: userAId,
             selected_goal_types: ["study_funding"],
             current_section: "academic",
-            draft: studyState(),
+            draft: multiGoalExploringState(),
             completion: 36,
             revision: 7,
           })
@@ -112,10 +120,14 @@ describe("optimized onboarding hosted transaction and RLS", () => {
       ).toBeNull();
       const legacy = await clientA
         .from("onboarding_progress")
-        .select("current_section,revision")
+        .select("current_section,revision,draft")
         .eq("user_id", userAId)
         .single();
-      expect(legacy.data).toMatchObject({ current_section: "academic", revision: 7 });
+      expect(legacy.data).toMatchObject({
+        current_section: "academic",
+        revision: 7,
+        draft: { focusPath: "exploring" },
+      });
 
       const first = await confirm(clientA, studyState());
       expect(first.error).toBeNull();
@@ -167,6 +179,12 @@ describe("optimized onboarding hosted transaction and RLS", () => {
           })
         ).error,
       ).not.toBeNull();
+      const userBCannotReadFocus = await clientB
+        .from("onboarding_progress")
+        .select("draft")
+        .eq("user_id", userAId);
+      expect(userBCannotReadFocus.error).toBeNull();
+      expect(userBCannotReadFocus.data).toHaveLength(0);
 
       const queue = await admin!
         .from("profile_match_recompute_queue" as never)

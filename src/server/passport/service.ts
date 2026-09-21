@@ -6,6 +6,7 @@ import {
   emptyPassportState,
   mapLegacySectionToStage,
   materialPassportSnapshot,
+  normalizePassportFocusPath,
   onboardingFlowVersion,
   onboardingStageIds,
   passportStateSchema,
@@ -25,7 +26,7 @@ export async function getPassportDraft(client: Client, userId: string) {
     .maybeSingle();
   if (error) throw new Error("We could not load your Passport draft.");
   const parsed = data ? passportStateSchema.safeParse(data.draft) : null;
-  const state = parsed?.success ? parsed.data : emptyPassportState;
+  const state = parsed?.success ? normalizePassportFocusPath(parsed.data) : emptyPassportState;
   return {
     state,
     progress: data ? { ...data, current_section: mapLegacySectionToStage(data.current_section) } : null,
@@ -61,8 +62,9 @@ export async function savePassportDraft(
   currentSection: string,
 ) {
   const stage = mapLegacySectionToStage(currentSection);
-  const passportReadiness = calculateCompletion(state);
-  const activation = calculateActivation(state);
+  const normalized = normalizePassportFocusPath(state);
+  const passportReadiness = calculateCompletion(normalized);
+  const activation = calculateActivation(normalized);
   const { data: previous } = await client
     .from("onboarding_progress")
     .select("revision,onboarding_started_at")
@@ -71,9 +73,9 @@ export async function savePassportDraft(
   const { error } = await client.from("onboarding_progress").upsert(
     {
       user_id: userId,
-      selected_goal_types: state.selectedGoals,
+      selected_goal_types: normalized.selectedGoals,
       current_section: stage,
-      draft: state as unknown as Json,
+      draft: normalized as unknown as Json,
       completion: stageProgress(stage),
       passport_readiness: passportReadiness.overall,
       revision: (previous?.revision ?? 0) + 1,
@@ -83,7 +85,7 @@ export async function savePassportDraft(
     { onConflict: "user_id" },
   );
   if (error) throw new Error("We could not save your Passport draft.");
-  return { activation, completion: passportReadiness, contradictions: findContradictions(state) };
+  return { activation, completion: passportReadiness, contradictions: findContradictions(normalized) };
 }
 
 export async function confirmPassport(
@@ -94,7 +96,7 @@ export async function confirmPassport(
 ) {
   const parsed = passportStateSchema.safeParse(state);
   if (!parsed.success) throw new Error("Please review the highlighted Passport fields.");
-  const normalized = materialPassportSnapshot(parsed.data);
+  const normalized = materialPassportSnapshot(normalizePassportFocusPath(parsed.data));
   const contradictions = findContradictions(normalized);
   const activation = calculateActivation(normalized);
   const completion = calculateCompletion(normalized);

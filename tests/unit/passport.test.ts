@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  activePathways,
   emptyPassportState,
   mapLegacySectionToStage,
   materialPassportFingerprint,
@@ -7,6 +8,7 @@ import {
   onboardingStageIds,
   passportStateSchema,
   pathwayFlags,
+  resolveFocusPath,
   visibleSections,
   type PassportState,
 } from "@/features/passport/model";
@@ -77,6 +79,16 @@ describe("Opportunity Passport four-stage rules", () => {
     });
   });
 
+  it("requires an explicit focus only when multiple pathway groups are active", () => {
+    expect(activePathways(["study_funding", "research", "internship", "professional_sponsorship"])).toEqual([
+      "academic",
+      "professional",
+    ]);
+    expect(resolveFocusPath(["study_funding"], null)).toBe("academic");
+    expect(resolveFocusPath(["study_funding", "professional_sponsorship"], null)).toBeNull();
+    expect(resolveFocusPath(["study_funding", "professional_sponsorship"], "exploring")).toBe("exploring");
+  });
+
   it("accepts concise study activation while keeping Passport readiness separate", () => {
     const state = studyState();
     expect(calculateActivation(state)).toMatchObject({ complete: true, overall: 100 });
@@ -118,6 +130,16 @@ describe("Opportunity Passport four-stage rules", () => {
     };
     expect(calculateActivation(state).complete).toBe(true);
     expect(calculateActivation({ ...state, skills: [] }).missing).toContain("at least one core skill");
+  });
+
+  it("allows an all-routes user to explore without treating deferred details as missing", () => {
+    const state: PassportState = {
+      ...studyState(),
+      selectedGoals: ["study_funding", "professional_sponsorship", "skilled_trade"],
+      focusPath: "exploring",
+    };
+    expect(calculateActivation(state)).toMatchObject({ complete: true, overall: 100 });
+    expect(calculateCompletion(state).overall).toBeLessThan(100);
   });
 
   it("preserves zero, unknown and not-applicable trade answers as explicit values", () => {
@@ -171,5 +193,13 @@ describe("Opportunity Passport four-stage rules", () => {
         schemaVersion: "phase3.cv.v1",
       }).success,
     ).toBe(false);
+  });
+
+  it("reads old drafts without a focus path and preserves it as an explicit null", () => {
+    const { focusPath, ...legacyDraft } = emptyPassportState;
+    expect(focusPath).toBeNull();
+    expect(
+      passportStateSchema.parse({ ...legacyDraft, selectedGoals: ["study_funding"] }).focusPath,
+    ).toBeNull();
   });
 });

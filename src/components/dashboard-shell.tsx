@@ -490,7 +490,7 @@ function OpportunityCard({
         </p>
         <div className="match-score">
           {opportunity.match === null ? (
-            <strong className="match-score-unknown">Complete Passport to calculate your match</strong>
+            <strong className="match-score-unknown">Match score not available yet</strong>
           ) : (
             <>
               <strong>{opportunity.match}%</strong>

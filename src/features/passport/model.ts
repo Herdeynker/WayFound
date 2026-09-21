@@ -15,6 +15,30 @@ export const onboardingFlowVersion = "onboarding.optimized.v1";
 export const onboardingStageIds = ["goals", "background", "experience", "review"] as const;
 export type OnboardingStageId = (typeof onboardingStageIds)[number];
 
+/** A user-selected first route. It scopes activation only; every selected goal stays active. */
+export const onboardingFocusPaths = ["academic", "professional", "trade", "exploring"] as const;
+export type OnboardingFocusPath = (typeof onboardingFocusPaths)[number];
+export type PersonalisedPathway = Exclude<OnboardingFocusPath, "exploring">;
+
+export const focusPathCopy: Record<OnboardingFocusPath, { title: string; description: string }> = {
+  academic: {
+    title: "Study, scholarships and research",
+    description: "Add the essentials for academic opportunities first.",
+  },
+  professional: {
+    title: "Sponsored professional work",
+    description: "Add the essentials for professional and internship opportunities first.",
+  },
+  trade: {
+    title: "Skilled/trade work",
+    description: "Add the essentials for skilled and trade opportunities first.",
+  },
+  exploring: {
+    title: "I’m still exploring — show me opportunities first",
+    description: "Keep all selected routes active and browse broader verified opportunities.",
+  },
+};
+
 export const onboardingStages: ReadonlyArray<{
   id: OnboardingStageId;
   label: string;
@@ -122,14 +146,45 @@ export function mapLegacySectionToStage(value: unknown): OnboardingStageId {
 }
 
 export function pathwayFlags(goals: readonly GoalType[]) {
+  const active = activePathways(goals);
   return {
-    academic: goals.some((goal) =>
-      ["study_funding", "fellowship_graduate", "research", "internship"].includes(goal),
-    ),
+    academic: active.includes("academic"),
     research: goals.some((goal) => ["fellowship_graduate", "research"].includes(goal)),
-    professional: goals.some((goal) => ["professional_sponsorship", "internship"].includes(goal)),
-    trade: goals.includes("skilled_trade"),
+    professional: active.includes("professional"),
+    trade: active.includes("trade"),
   };
+}
+
+/** Groups selected goals without treating an internship as an academic requirement. */
+export function activePathways(goals: readonly GoalType[]): PersonalisedPathway[] {
+  const pathways: PersonalisedPathway[] = [];
+  if (goals.some((goal) => ["study_funding", "fellowship_graduate", "research"].includes(goal)))
+    pathways.push("academic");
+  if (goals.some((goal) => ["professional_sponsorship", "internship"].includes(goal)))
+    pathways.push("professional");
+  if (goals.includes("skilled_trade")) pathways.push("trade");
+  return pathways;
+}
+
+/**
+ * A single selected route is deterministic. For multiple routes, the user must
+ * explicitly choose a personalised route or the honest exploring state.
+ */
+export function resolveFocusPath(
+  goals: readonly GoalType[],
+  requestedFocus: OnboardingFocusPath | null | undefined,
+): OnboardingFocusPath | null {
+  const pathways = activePathways(goals);
+  if (pathways.length === 1) return pathways[0];
+  if (pathways.length < 2 || !requestedFocus) return null;
+  if (requestedFocus === "exploring") return requestedFocus;
+  return pathways.includes(requestedFocus) ? requestedFocus : null;
+}
+
+/** Normalizes legacy or malformed drafts without deleting any deferred pathway data. */
+export function normalizePassportFocusPath(state: PassportState): PassportState {
+  const focusPath = resolveFocusPath(state.selectedGoals, state.focusPath);
+  return focusPath === state.focusPath ? state : { ...state, focusPath };
 }
 
 export function visibleSections(goals: readonly GoalType[]): SectionId[] {
@@ -272,6 +327,8 @@ export const passportStateSchema = z
     passportExpiry: dateText,
     willingToRelocate: z.boolean().nullable(),
     selectedGoals: z.array(z.enum(goalTypes)).min(1).max(goalTypes.length),
+    // Optional/default keeps legacy 11-step and initial four-stage drafts readable.
+    focusPath: z.enum(onboardingFocusPaths).nullable().optional().default(null),
     destinations: z.array(z.string().max(3)).max(12),
     openToOtherDestinations: z.boolean(),
     excludedDestinations: z.array(z.string().max(80)).max(12),
@@ -303,6 +360,7 @@ export const emptyPassportState: PassportState = {
   passportExpiry: "",
   willingToRelocate: null,
   selectedGoals: [],
+  focusPath: null,
   destinations: [],
   openToOtherDestinations: false,
   excludedDestinations: [],

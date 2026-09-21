@@ -14,6 +14,11 @@ const eventTypes = [
   "onboarding_resumed",
   "optional_field_deferred",
   "review_edit_requested",
+  "onboarding_focus_path_viewed",
+  "onboarding_focus_path_selected",
+  "onboarding_focus_path_changed",
+  "onboarding_exploring_selected",
+  "onboarding_deferred_path",
 ] as const;
 
 const details = [
@@ -22,6 +27,11 @@ const details = [
   "goals_destinations",
   "background",
   "experience",
+  "selection",
+  "academic",
+  "professional",
+  "trade",
+  "exploring",
 ] as const;
 
 const schema = z.object({

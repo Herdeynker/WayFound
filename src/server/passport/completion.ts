@@ -1,5 +1,5 @@
 import type { GoalType, PassportState, SectionId } from "@/features/passport/model";
-import { pathwayFlags, visibleSections } from "@/features/passport/model";
+import { resolveFocusPath, visibleSections } from "@/features/passport/model";
 
 export type CompletionResult = {
   overall: number;
@@ -47,14 +47,17 @@ export function calculateActivation(state: PassportState): ActivationResult {
     ["country of citizenship", Boolean(state.citizenshipCountry.trim())],
     ["country of residence", Boolean(state.residenceCountry.trim())],
   ]);
-  const flags = pathwayFlags(state.selectedGoals);
-  if (flags.academic) requirements.set("qualification, field and graduation status", hasEducation(state));
-  if (flags.professional) {
+  const focusPath = resolveFocusPath(state.selectedGoals, state.focusPath);
+  if (!focusPath) requirements.set("a pathway to personalise or the exploring option", false);
+  if (focusPath === "academic")
+    requirements.set("qualification, field and graduation status", hasEducation(state));
+  if (focusPath === "professional") {
     requirements.set("current occupation and employment status", hasEmployment(state));
     requirements.set("professional experience range", hasProfessionalExperience(state));
     requirements.set("at least one core skill", hasSkills(state));
   }
-  if (flags.trade) requirements.set("trade experience and credential status", hasTradeExperience(state));
+  if (focusPath === "trade")
+    requirements.set("trade experience and credential status", hasTradeExperience(state));
   const missing = [...requirements].filter(([, met]) => !met).map(([label]) => label);
   const met = requirements.size - missing.length;
   return {
@@ -75,7 +78,7 @@ export function calculateCompletion(state: PassportState): CompletionResult {
       [hasLanguage(state), "a language profile"],
       [state.documents.length > 0, "document readiness"],
     ];
-    if (["study_funding", "fellowship_graduate", "research", "internship"].includes(goal))
+    if (["study_funding", "fellowship_graduate", "research"].includes(goal))
       requirements.push(
         [hasEducation(state), "education basis"],
         [state.education.some((item) => item.institution.trim()), "academic history"],
@@ -93,7 +96,6 @@ export function calculateCompletion(state: PassportState): CompletionResult {
       requirements.push(
         [hasTrade(state), "trade basis"],
         [hasTradeExperience(state), "trade experience and credential status"],
-        [hasSkills(state), "skills"],
       );
     const complete = requirements.filter(([value]) => value).length;
     pathways[goal] = Math.round((complete / requirements.length) * 100);

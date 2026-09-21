@@ -3,13 +3,17 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button, Checkbox, FormField, Input, ProgressIndicator, Select, TextArea } from "@/components/ui";
 import {
+  activePathways,
   countryOptions,
   emptyPassportState,
+  focusPathCopy,
   goalCatalog,
   mapLegacySectionToStage,
   onboardingStageIds,
   onboardingStages,
   pathwayFlags,
+  resolveFocusPath,
+  type OnboardingFocusPath,
   type OnboardingStageId,
   type PassportState,
 } from "./model";
@@ -29,7 +33,12 @@ type AnalyticsEvent =
   | "onboarding_stage_abandoned"
   | "onboarding_resumed"
   | "optional_field_deferred"
-  | "review_edit_requested";
+  | "review_edit_requested"
+  | "onboarding_focus_path_viewed"
+  | "onboarding_focus_path_selected"
+  | "onboarding_focus_path_changed"
+  | "onboarding_exploring_selected"
+  | "onboarding_deferred_path";
 
 const educationBlank: PassportState["education"][number] = {
   institution: "",
@@ -169,6 +178,7 @@ export function PassportWizard({
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [returnToReview, setReturnToReview] = useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingSaves = useRef(new Set<Promise<boolean>>());
   const lastSaved = useRef<string | null>(fixture ? draftFingerprint(fixtureDraft, fixtureStage) : null);
   const started = useRef(false);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -177,6 +187,11 @@ export function PassportWizard({
   const completion = useMemo(() => calculateCompletion(state), [state]);
   const contradictions = useMemo(() => findContradictions(state), [state]);
   const flags = useMemo(() => pathwayFlags(state.selectedGoals), [state.selectedGoals]);
+  const activeFocusPaths = useMemo(() => activePathways(state.selectedGoals), [state.selectedGoals]);
+  const resolvedFocusPath = useMemo(
+    () => resolveFocusPath(state.selectedGoals, state.focusPath),
+    [state.focusPath, state.selectedGoals],
+  );
 
   const recordEvent = useCallback(
     (eventType: AnalyticsEvent, stage: OnboardingStageId, detail?: string) => {
@@ -191,23 +206,28 @@ export function PassportWizard({
   );
 
   const persistDraft = useCallback(
-    async (nextState: PassportState, stage: OnboardingStageId) => {
+    (nextState: PassportState, stage: OnboardingStageId) => {
       if (fixture) return true;
       setSaveState("saving");
-      try {
-        const response = await fetch("/api/passport", {
-          method: "PUT",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ state: nextState, currentSection: stage }),
-        });
-        if (!response.ok) throw new Error("save");
-        lastSaved.current = draftFingerprint(nextState, stage);
-        setSaveState("saved");
-        return true;
-      } catch {
-        setSaveState("error");
-        return false;
-      }
+      const pending = (async () => {
+        try {
+          const response = await fetch("/api/passport", {
+            method: "PUT",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ state: nextState, currentSection: stage }),
+          });
+          if (!response.ok) throw new Error("save");
+          lastSaved.current = draftFingerprint(nextState, stage);
+          setSaveState("saved");
+          return true;
+        } catch {
+          setSaveState("error");
+          return false;
+        }
+      })();
+      pendingSaves.current.add(pending);
+      void pending.finally(() => pendingSaves.current.delete(pending));
+      return pending;
     },
     [fixture],
   );
@@ -263,7 +283,11 @@ export function PassportWizard({
       started.current = true;
       recordEvent("onboarding_started", current);
     }
-    setState((value) => ({ ...value, ...patch }));
+    setState((value) => {
+      const next = { ...value, ...patch };
+      if (patch.selectedGoals) next.focusPath = resolveFocusPath(patch.selectedGoals, next.focusPath);
+      return next;
+    });
     setErrors({});
     setMessage("");
     if (saveState === "error") setSaveState("idle");
@@ -274,6 +298,8 @@ export function PassportWizard({
     setErrors({});
     setMessage("");
     recordEvent("onboarding_stage_viewed", next);
+    if (next === "experience" && activeFocusPaths.length > 1 && !resolvedFocusPath)
+      recordEvent("onboarding_focus_path_viewed", next, "selection");
     requestAnimationFrame(() => headingRef.current?.focus());
     if (typeof window !== "undefined" && !window.navigator.userAgent.includes("jsdom"))
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -292,23 +318,27 @@ export function PassportWizard({
     if (stage === "background") {
       if (!state.citizenshipCountry.trim()) next.citizenship = "Choose your country of citizenship.";
       if (!state.residenceCountry.trim()) next.residence = "Choose your current country of residence.";
-      if (flags.academic && !education?.qualificationLevel.trim())
-        next.qualification = "Add your highest relevant qualification.";
-      if (flags.academic && !education?.fieldOfStudy.trim())
-        next.field = "Add your course or academic field.";
-      if (flags.professional && !employment?.jobTitle.trim())
-        next.occupation = "Add your current or recent occupation.";
-      if (flags.professional && !employment?.employmentType.trim())
-        next.employmentStatus = "Choose your current employment status.";
-      if (flags.trade && !trade?.tradeOrOccupation.trim()) next.trade = "Add your trade or occupation.";
     }
     if (stage === "experience") {
-      if (flags.professional && !employment?.startDate.trim())
+      if (activeFocusPaths.length > 1 && !resolvedFocusPath)
+        next.focusPath = "Choose a path to personalise, or choose the exploring option.";
+      if (resolvedFocusPath === "academic" && !education?.qualificationLevel.trim())
+        next.qualification = "Add your highest relevant qualification.";
+      if (resolvedFocusPath === "academic" && !education?.fieldOfStudy.trim())
+        next.field = "Add your course or academic field.";
+      if (resolvedFocusPath === "professional" && !employment?.jobTitle.trim())
+        next.occupation = "Add your current or recent occupation.";
+      if (resolvedFocusPath === "professional" && !employment?.employmentType.trim())
+        next.employmentStatus = "Choose your current employment status.";
+      if (resolvedFocusPath === "professional" && !employment?.startDate.trim())
         next.experience = "Add the year you started working in this field.";
-      if ((flags.professional || flags.trade) && !state.skills.some((item) => item.skillName.trim()))
+      if (resolvedFocusPath === "professional" && !state.skills.some((item) => item.skillName.trim()))
         next.skills = "Add at least one core skill.";
-      if (flags.trade && trade?.practicalYears == null) next.tradeYears = "Choose your practical experience.";
-      if (flags.trade && !trade?.tradeCertification.trim())
+      if (resolvedFocusPath === "trade" && !trade?.tradeOrOccupation.trim())
+        next.trade = "Add your trade or occupation.";
+      if (resolvedFocusPath === "trade" && trade?.practicalYears == null)
+        next.tradeYears = "Choose your practical experience.";
+      if (resolvedFocusPath === "trade" && !trade?.tradeCertification.trim())
         next.tradeCertification = "Choose a certification status, including unknown or not held.";
     }
     setErrors(next);
@@ -323,6 +353,7 @@ export function PassportWizard({
   async function goNext() {
     if (!validateStage(current)) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
+    await Promise.all(pendingSaves.current);
     if (!(await persistDraft(state, current))) {
       setMessage("Your latest answers were not saved. Retry before continuing.");
       return;
@@ -353,6 +384,24 @@ export function PassportWizard({
     setMessage("That optional detail can be added later from your Passport.");
   }
 
+  function selectFocusPath(focusPath: OnboardingFocusPath) {
+    const previous = state.focusPath;
+    update({ focusPath });
+    if (focusPath === "exploring") recordEvent("onboarding_exploring_selected", "experience", "exploring");
+    else
+      recordEvent(
+        previous && previous !== focusPath
+          ? "onboarding_focus_path_changed"
+          : "onboarding_focus_path_selected",
+        "experience",
+        focusPath,
+      );
+    if (focusPath !== "exploring")
+      activeFocusPaths
+        .filter((path) => path !== focusPath)
+        .forEach((path) => recordEvent("onboarding_deferred_path", "experience", path));
+  }
+
   async function confirm() {
     const currentActivation = calculateActivation(state);
     if (contradictions.length || !currentActivation.complete) {
@@ -370,6 +419,7 @@ export function PassportWizard({
     }
     if (saveTimer.current) clearTimeout(saveTimer.current);
     setSaveState("saving");
+    await Promise.all(pendingSaves.current);
     const response = await fetch("/api/passport", {
       method: "PUT",
       headers: { "content-type": "application/json" },
@@ -389,6 +439,7 @@ export function PassportWizard({
   async function saveAndLeave() {
     if (fixture) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
+    await Promise.all(pendingSaves.current);
     recordEvent("onboarding_stage_abandoned", current);
     if (!(await persistDraft(state, current))) {
       setMessage("We could not save this stage. Retry before leaving.");
@@ -496,10 +547,19 @@ export function PassportWizard({
           ) : null}
           {current === "goals" ? <GoalsStage errors={errors} state={state} update={update} /> : null}
           {current === "background" ? (
-            <BackgroundStage errors={errors} flags={flags} state={state} update={update} />
+            <BackgroundStage errors={errors} state={state} update={update} />
           ) : null}
           {current === "experience" ? (
-            <ExperienceStage defer={defer} errors={errors} flags={flags} state={state} update={update} />
+            <ExperienceStage
+              activeFocusPaths={activeFocusPaths}
+              defer={defer}
+              errors={errors}
+              flags={flags}
+              focusPath={resolvedFocusPath}
+              selectFocusPath={selectFocusPath}
+              state={state}
+              update={update}
+            />
           ) : null}
           {current === "review" ? (
             <ReviewStage
@@ -507,6 +567,7 @@ export function PassportWizard({
               completion={completion}
               contradictions={contradictions}
               edit={editFromReview}
+              focusPath={resolvedFocusPath}
               state={state}
             />
           ) : null}
@@ -618,18 +679,13 @@ function GoalsStage({
 
 function BackgroundStage({
   errors,
-  flags,
   state,
   update,
 }: {
   errors: Record<string, string>;
-  flags: ReturnType<typeof pathwayFlags>;
   state: PassportState;
   update: (patch: Partial<PassportState>) => void;
 }) {
-  const education = state.education[0] ?? educationBlank;
-  const employment = state.employment[0] ?? employmentBlank;
-  const trade = state.trade[0] ?? tradeBlank;
   const originOptions = [["NG", "Nigeria"], ...countryOptions] as const;
   return (
     <div className="passport-section-stack">
@@ -667,12 +723,57 @@ function BackgroundStage({
           </FormField>
         </div>
       </section>
-      {flags.academic ? (
-        <section className="passport-question-card">
-          <div className="passport-card-heading">
-            <span>Study, research and early career</span>
-            <h3>Education basis</h3>
-          </div>
+      <aside className="passport-later-card">
+        <strong>Your route-specific questions come next</strong>
+        <p>
+          We only ask for the essentials for one route at a time. Your other selected goals stay active and
+          can be personalised later from your Passport.
+        </p>
+      </aside>
+    </div>
+  );
+}
+
+function ExperienceStage({
+  activeFocusPaths,
+  defer,
+  errors,
+  flags,
+  focusPath,
+  selectFocusPath,
+  state,
+  update,
+}: {
+  activeFocusPaths: ReturnType<typeof activePathways>;
+  defer: (detail: string) => void;
+  errors: Record<string, string>;
+  flags: ReturnType<typeof pathwayFlags>;
+  focusPath: OnboardingFocusPath | null;
+  selectFocusPath: (path: OnboardingFocusPath) => void;
+  state: PassportState;
+  update: (patch: Partial<PassportState>) => void;
+}) {
+  const education = state.education[0] ?? educationBlank;
+  const employment = state.employment[0] ?? employmentBlank;
+  const trade = state.trade[0] ?? tradeBlank;
+  const language = state.languages[0] ?? languageBlank;
+  const certification = state.certifications[0] ?? certificationBlank;
+  return (
+    <div className="passport-section-stack">
+      {activeFocusPaths.length > 1 ? (
+        <FocusPathSelector
+          activeFocusPaths={activeFocusPaths}
+          error={errors.focusPath}
+          focusPath={focusPath}
+          onSelect={selectFocusPath}
+        />
+      ) : null}
+      {focusPath === "academic" ? (
+        <details className="passport-experience-card" open>
+          <summary>
+            <span>Study, scholarship and research</span>
+            <strong>Academic foundation</strong>
+          </summary>
           <div className="passport-form-grid">
             <FormField error={errors.qualification} label="Highest relevant qualification · Required">
               <Select
@@ -725,101 +826,6 @@ function BackgroundStage({
                 <option value="result_pending">Result pending</option>
               </Select>
             </FormField>
-          </div>
-        </section>
-      ) : null}
-      {flags.professional ? (
-        <section className="passport-question-card">
-          <div className="passport-card-heading">
-            <span>Professional and internship</span>
-            <h3>Current work context</h3>
-          </div>
-          <div className="passport-form-grid">
-            <FormField error={errors.occupation} label="Current or recent occupation · Required">
-              <Input
-                placeholder="Software engineer, accountant…"
-                value={employment.jobTitle}
-                onChange={(event) =>
-                  update({
-                    employment: replaceFirst(state.employment, employmentBlank, {
-                      jobTitle: event.target.value,
-                    }),
-                  })
-                }
-              />
-            </FormField>
-            <FormField error={errors.employmentStatus} label="Employment status · Required">
-              <Select
-                value={employment.employmentType}
-                onChange={(event) =>
-                  update({
-                    employment: replaceFirst(state.employment, employmentBlank, {
-                      employmentType: event.target.value,
-                    }),
-                  })
-                }
-              >
-                <option value="">Choose one</option>
-                <option value="employed">Employed</option>
-                <option value="self_employed">Self-employed</option>
-                <option value="student">Student</option>
-                <option value="between_roles">Between roles</option>
-                <option value="not_applicable">Not applicable</option>
-              </Select>
-            </FormField>
-          </div>
-        </section>
-      ) : null}
-      {flags.trade ? (
-        <section className="passport-question-card">
-          <div className="passport-card-heading">
-            <span>Skilled and trade work</span>
-            <h3>Your trade</h3>
-          </div>
-          <FormField error={errors.trade} label="Trade or occupation · Required">
-            <Input
-              placeholder="Electrician, welder, chef…"
-              value={trade.tradeOrOccupation}
-              onChange={(event) =>
-                update({
-                  trade: replaceFirst(state.trade, tradeBlank, { tradeOrOccupation: event.target.value }),
-                })
-              }
-            />
-          </FormField>
-        </section>
-      ) : null}
-    </div>
-  );
-}
-
-function ExperienceStage({
-  defer,
-  errors,
-  flags,
-  state,
-  update,
-}: {
-  defer: (detail: string) => void;
-  errors: Record<string, string>;
-  flags: ReturnType<typeof pathwayFlags>;
-  state: PassportState;
-  update: (patch: Partial<PassportState>) => void;
-}) {
-  const education = state.education[0] ?? educationBlank;
-  const employment = state.employment[0] ?? employmentBlank;
-  const trade = state.trade[0] ?? tradeBlank;
-  const language = state.languages[0] ?? languageBlank;
-  const certification = state.certifications[0] ?? certificationBlank;
-  return (
-    <div className="passport-section-stack">
-      {flags.academic ? (
-        <details className="passport-experience-card" open>
-          <summary>
-            <span>Study, scholarship and research</span>
-            <strong>Academic signals</strong>
-          </summary>
-          <div className="passport-form-grid">
             <FormField label="Grade or classification · Optional">
               <Input
                 placeholder="First class, Distinction, 3.2/5…"
@@ -875,13 +881,45 @@ function ExperienceStage({
           </button>
         </details>
       ) : null}
-      {flags.professional ? (
+      {focusPath === "professional" ? (
         <details className="passport-experience-card" open>
           <summary>
             <span>Professional and internship</span>
             <strong>Experience basis</strong>
           </summary>
           <div className="passport-form-grid">
+            <FormField error={errors.occupation} label="Current or recent occupation · Required">
+              <Input
+                placeholder="Software engineer, accountant…"
+                value={employment.jobTitle}
+                onChange={(event) =>
+                  update({
+                    employment: replaceFirst(state.employment, employmentBlank, {
+                      jobTitle: event.target.value,
+                    }),
+                  })
+                }
+              />
+            </FormField>
+            <FormField error={errors.employmentStatus} label="Employment status · Required">
+              <Select
+                value={employment.employmentType}
+                onChange={(event) =>
+                  update({
+                    employment: replaceFirst(state.employment, employmentBlank, {
+                      employmentType: event.target.value,
+                    }),
+                  })
+                }
+              >
+                <option value="">Choose one</option>
+                <option value="employed">Employed</option>
+                <option value="self_employed">Self-employed</option>
+                <option value="student">Student</option>
+                <option value="between_roles">Between roles</option>
+                <option value="not_applicable">Not applicable</option>
+              </Select>
+            </FormField>
             <FormField
               error={errors.experience}
               hint="An approximate year is enough for initial ranking."
@@ -924,13 +962,24 @@ function ExperienceStage({
           </div>
         </details>
       ) : null}
-      {flags.trade ? (
+      {focusPath === "trade" ? (
         <details className="passport-experience-card" open>
           <summary>
             <span>Skilled and trade work</span>
             <strong>Practical readiness</strong>
           </summary>
           <div className="passport-form-grid">
+            <FormField error={errors.trade} label="Trade or occupation · Required">
+              <Input
+                placeholder="Electrician, welder, chef…"
+                value={trade.tradeOrOccupation}
+                onChange={(event) =>
+                  update({
+                    trade: replaceFirst(state.trade, tradeBlank, { tradeOrOccupation: event.target.value }),
+                  })
+                }
+              />
+            </FormField>
             <FormField error={errors.tradeYears} label="Practical years of experience · Required">
               <Select
                 value={trade.practicalYears == null ? "" : String(trade.practicalYears)}
@@ -990,8 +1039,18 @@ function ExperienceStage({
           </p>
         </details>
       ) : null}
-      {flags.professional || flags.trade ? (
+      {focusPath === "professional" ? (
         <SkillsEditor error={errors.skills} state={state} update={update} />
+      ) : null}
+      {focusPath === "exploring" ? (
+        <section className="passport-exploring-card" aria-live="polite">
+          <span>Broad discovery first</span>
+          <h3>We’ll show verified opportunities across your selected routes.</h3>
+          <p>
+            Your Passport will keep missing route details as unknown. Choose a path later to unlock tailored
+            matches when your confirmed information supports one.
+          </p>
+        </section>
       ) : null}
       <aside className="passport-later-card">
         <strong>Continue in your Passport after onboarding</strong>
@@ -1004,6 +1063,59 @@ function ExperienceStage({
         </button>
       </aside>
     </div>
+  );
+}
+
+function FocusPathSelector({
+  activeFocusPaths,
+  error,
+  focusPath,
+  onSelect,
+}: {
+  activeFocusPaths: ReturnType<typeof activePathways>;
+  error?: string;
+  focusPath: OnboardingFocusPath | null;
+  onSelect: (path: OnboardingFocusPath) => void;
+}) {
+  const choices: OnboardingFocusPath[] = [...activeFocusPaths, "exploring"];
+  return (
+    <section
+      aria-describedby={error ? "focus-path-error" : undefined}
+      aria-labelledby="focus-path-heading"
+      className="passport-focus-selector"
+    >
+      <div className="passport-card-heading">
+        <span>One route at a time</span>
+        <h3 id="focus-path-heading">Which path would you like to personalise first?</h3>
+      </div>
+      <p>
+        We’ll personalise this path now. You can add details for your other goals later from your Passport.
+      </p>
+      <div aria-label="Choose a path to personalise" className="passport-focus-options" role="group">
+        {choices.map((path) => {
+          const selected = focusPath === path;
+          const copy = focusPathCopy[path];
+          return (
+            <button
+              aria-pressed={selected}
+              className={`passport-focus-option ${selected ? "is-selected" : ""}`}
+              key={path}
+              onClick={() => onSelect(path)}
+              type="button"
+            >
+              <strong>{copy.title}</strong>
+              <span>{copy.description}</span>
+              <b>{selected ? "Selected" : "Choose"}</b>
+            </button>
+          );
+        })}
+      </div>
+      {error ? (
+        <p className="field-error" id="focus-path-error">
+          {error}
+        </p>
+      ) : null}
+    </section>
   );
 }
 
@@ -1083,12 +1195,14 @@ function ReviewStage({
   completion,
   contradictions,
   edit,
+  focusPath,
   state,
 }: {
   activation: ReturnType<typeof calculateActivation>;
   completion: ReturnType<typeof calculateCompletion>;
   contradictions: string[];
   edit: (stage: Exclude<OnboardingStageId, "review">, detail: string) => void;
+  focusPath: OnboardingFocusPath | null;
   state: PassportState;
 }) {
   const education = state.education[0];
@@ -1102,6 +1216,9 @@ function ReviewStage({
     !state.certifications.length && "Detailed certifications and licences",
     !state.languages.length && "Language-test details",
   ].filter(Boolean) as string[];
+  const deferredPaths = activePathways(state.selectedGoals).filter(
+    (path) => focusPath === "exploring" || path !== focusPath,
+  );
   return (
     <div className="passport-review">
       <div className="passport-activation-status">
@@ -1130,8 +1247,23 @@ function ReviewStage({
           {state.residenceCountry || "Unknown"}
         </p>
       </ReviewGroup>
+      <ReviewGroup title="Personalisation focus" onEdit={() => edit("experience", "experience")}>
+        {focusPath === "exploring" ? (
+          <p>
+            Exploring all selected routes first. WAYFOUND will show broader verified opportunities, not
+            fabricated match scores.
+          </p>
+        ) : focusPath ? (
+          <p>
+            Personalising: {focusPathCopy[focusPath].title}. Other selected routes remain active for broader
+            discovery.
+          </p>
+        ) : (
+          <p>Choose a route to personalise before confirming.</p>
+        )}
+      </ReviewGroup>
       {education ? (
-        <ReviewGroup title="Education" onEdit={() => edit("background", "background")}>
+        <ReviewGroup title="Education" onEdit={() => edit("experience", "experience")}>
           <p>
             {education.qualificationLevel || "Qualification unknown"} ·{" "}
             {education.fieldOfStudy || "Field unknown"} · {education.graduationStatus.replaceAll("_", " ")}
@@ -1183,6 +1315,22 @@ function ReviewStage({
           )}
         </ul>
       </section>
+      {deferredPaths.length ? (
+        <section className="passport-review-group is-deferred">
+          <div>
+            <h3>Active routes to personalise later</h3>
+            <span>Still active for broader discovery</span>
+          </div>
+          <ul>
+            {deferredPaths.map((path) => (
+              <li key={path}>
+                Explore {focusPathCopy[path].title.toLocaleLowerCase()} opportunities — complete this path to
+                see your match.
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       {!activation.complete ? (
         <div className="passport-missing">
           <strong>Required before confirmation</strong>
